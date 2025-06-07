@@ -39,6 +39,12 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-webflux'
 	testImplementation 'org.springframework:spring-webflux'
 
+	//	QueryDsl
+	implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
+	annotationProcessor "com.querydsl:querydsl-apt:${dependencyManagement.importedProperties['querydsl.version']}:jakarta"
+	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+	annotationProcessor "jakarta.persistence:jakarta.persistence-api"
+
 	/**
 	 * WebTestClient는 내부적으로 Netty 기반 HTTP 클라이언트를 사용
 	 * Netty는 DNS 해석을 빠르고 정밀하게 하기 위해 운영체제(OS) 네이티브 라이브러리를 사용할 수 있음
