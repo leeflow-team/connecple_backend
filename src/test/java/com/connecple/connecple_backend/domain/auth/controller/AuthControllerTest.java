@@ -18,6 +18,9 @@ class AuthControllerTest {
                 .build();
     }
 
+    /**
+     * 로그인 테스트
+     */
     @Test
     void loginTest() {
         LoginRequest request = new LoginRequest("admin", "1234");
@@ -33,7 +36,7 @@ class AuthControllerTest {
     }
 
     /**
-     * 로그인 후 세션 쿠키(JSESSIONID)를 리턴하는 공통 메서드
+     * 로그인 후 세션 쿠키(JSESSIONID)를 리턴하는 메서드
      */
     private String loginAndGetSession() {
         LoginRequest request = new LoginRequest("admin", "1234");
@@ -50,7 +53,7 @@ class AuthControllerTest {
     }
 
     /**
-     * ✅ 실제 API 호출 테스트 (로그인 세션 활용)
+     * 실제 API 호출 테스트 (로그인 세션 활용)
      */
     @Test
     void sessionCheckTest() {
