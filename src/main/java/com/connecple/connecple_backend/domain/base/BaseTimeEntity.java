@@ -1,4 +1,4 @@
-package com.connecple.connecple_backend.domain.entity;
+package com.connecple.connecple_backend.domain.base;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;
