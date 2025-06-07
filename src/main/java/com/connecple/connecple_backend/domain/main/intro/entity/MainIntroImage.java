@@ -1,9 +1,10 @@
-package com.connecple.connecple_backend.domain.entity;
+package com.connecple.connecple_backend.domain.main.intro.entity;
 
+import com.connecple.connecple_backend.domain.base.BaseTimeEntity;
+import com.connecple.connecple_backend.domain.main.intro.entity.dto.MainIntroImageDto;
+import com.connecple.connecple_backend.domain.main.intro.entity.request.MainIntroImageUpdateRequest;
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "main_intro_images")
