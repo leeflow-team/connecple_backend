@@ -29,6 +29,14 @@ public class MainIntroImage extends BaseTimeEntity {
     @Column(nullable = false)
     private String company;
 
+    public MainIntroImageDto updateEntity(MainIntroImageUpdateRequest request) {
+        this.imagePath = request.getImagePath();
+        this.title = request.getTitle();
+        this.company = request.getCompany();
+
+        return new MainIntroImageDto(this);
+    }
+
     @Builder
     public MainIntroImage(String imagePath, Long sortOrder, String title, String company) {
         this.imagePath = imagePath;
