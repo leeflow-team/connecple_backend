@@ -1,6 +1,6 @@
 package com.connecple.connecple_backend.domain.auth.controller;
 
-import com.connecple.connecple_backend.domain.auth.model.LoginRequest;
+import com.connecple.connecple_backend.domain.auth.service.request.LoginRequest;
 import com.connecple.connecple_backend.domain.auth.service.AuthService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;

@@ -1,6 +1,6 @@
 package com.connecple.connecple_backend.domain.auth.service;
 
-import com.connecple.connecple_backend.domain.auth.model.LoginRequest;
+import com.connecple.connecple_backend.domain.auth.service.request.LoginRequest;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;

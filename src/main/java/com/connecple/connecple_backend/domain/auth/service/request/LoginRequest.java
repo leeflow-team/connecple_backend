@@ -1,4 +1,4 @@
-package com.connecple.connecple_backend.domain.auth.model;
+package com.connecple.connecple_backend.domain.auth.service.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
