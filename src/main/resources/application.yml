@@ -1,13 +1,15 @@
 spring:
+  application:
+    name: connecple_backend
   datasource:
-    url: jdbc:h2:tcp://localhost/~/connecple
-    username: sa
-    password:
-    driver-class-name: org.h2.Driver
+    url: ${CONNECPLE_DB_URL}
+    username: ${CONNECPLE_DB_USERNAME}
+    password: ${CONNECPLE_DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     properties:
       hibernate:
         format_sql: true
