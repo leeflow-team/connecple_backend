@@ -26,7 +26,7 @@ public class MainStatsManagement extends BaseTimeEntity {
     @Column(nullable = false)
     private String unit;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private Long sortOrder;
 
     @Builder
