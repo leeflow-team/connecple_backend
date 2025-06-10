@@ -16,7 +16,8 @@ public class MainStatsManagementRepositoryImpl implements MainStatsManagementRep
 
     @Override
     public List<MainStatsManagement> findAllOrderBySortOrder() {
-        return queryFactory.selectFrom(mainStatsManagement)
+        return queryFactory.
+                selectFrom(mainStatsManagement)
                 .orderBy(mainStatsManagement.sortOrder.asc())
                 .fetch();
     }

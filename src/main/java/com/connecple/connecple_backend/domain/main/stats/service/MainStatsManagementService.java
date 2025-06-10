@@ -1,13 +1,18 @@
 package com.connecple.connecple_backend.domain.main.stats.service;
 
 import com.connecple.connecple_backend.domain.main.stats.entity.MainStatsManagement;
+import com.connecple.connecple_backend.domain.main.stats.entity.dto.MainStatsResponseDto;
 import com.connecple.connecple_backend.domain.main.stats.entity.request.MainStatsUpdateRequest;
 import com.connecple.connecple_backend.domain.main.stats.repository.MainStatsManagementRepository;
 import com.connecple.connecple_backend.global.exception.BaseException;
 import jakarta.transaction.Transactional;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -42,5 +47,22 @@ public class MainStatsManagementService {
                 .toList();
 
         mainStatsManagementRepository.saveAll(mainStatsManagements);
+    }
+
+    public List<MainStatsResponseDto> getMainStats() {
+        List<MainStatsManagement> statsList = mainStatsManagementRepository.findAllOrderBySortOrder();
+
+        // sortOrder -> 엔티티 Map
+        Map<Long, MainStatsManagement> statsMap = statsList.stream()
+                .collect(Collectors.toMap(MainStatsManagement::getSortOrder, Function.identity()));
+
+        // 1~5까지 고정 사이즈 리스트 생성
+        List<MainStatsResponseDto> result = new ArrayList<>();
+        for (long i = 1; i <= 5; i++) {
+            MainStatsManagement found = statsMap.get(i);
+            result.add(found != null ? MainStatsResponseDto.fromEntity(found) : null);
+        }
+
+        return result;
     }
 }

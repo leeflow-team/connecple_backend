@@ -1,10 +1,12 @@
 package com.connecple.connecple_backend.domain.main.intro.controller;
 
 import com.connecple.connecple_backend.domain.AbstractWebTest;
+import com.connecple.connecple_backend.global.dto.SuccessResponse;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.junit.jupiter.api.Test;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.math.BigDecimal;
@@ -41,6 +43,47 @@ class MainStatsManagementControllerTest extends AbstractWebTest {
     @AllArgsConstructor
     @NoArgsConstructor
     static class MainStatsUpdateRequest {
+        private String statsName;
+        private BigDecimal statistic;
+        private String unit;
+        private Long sortOrder;
+    }
+
+
+    /**
+     * 메인 통계 수치 조회 테스트
+     */
+    @Test
+    void getMainStatsTest() {
+        WebTestClient.ResponseSpec response = authenticatedGet("/admin/stats")
+                .exchange()
+                .expectStatus().isOk();
+
+        var result = response.expectBody(
+                        new ParameterizedTypeReference<SuccessResponse<List<MainStatsResponse>>>() {})
+                .returnResult()
+                .getResponseBody();
+
+        assert result != null;
+        List<MainStatsResponse> statsList = result.getData();
+
+        System.out.println("size = " + statsList.size());
+        for (int i = 0; i < statsList.size(); i++) {
+            MainStatsResponse stats = statsList.get(i);
+            if (stats == null) {
+                System.out.println("stats[" + i + "] = null");
+            } else {
+                System.out.println("stats[" + i + "] = " + stats);
+            }
+        }
+
+        assert statsList.size() == 5;
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    static class MainStatsResponse {
         private String statsName;
         private BigDecimal statistic;
         private String unit;
