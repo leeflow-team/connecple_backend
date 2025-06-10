@@ -1,10 +1,12 @@
 package com.connecple.connecple_backend.domain.main.intro.controller;
 
 import com.connecple.connecple_backend.domain.AbstractWebTest;
+import com.connecple.connecple_backend.global.dto.SuccessResponse;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.junit.jupiter.api.Test;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 class FAQManagementControllerTest extends AbstractWebTest {
@@ -36,5 +38,36 @@ class FAQManagementControllerTest extends AbstractWebTest {
         private String answer;
         private Boolean isActive;
         private Boolean isDeleted = false;
+    }
+
+    /**
+     * FAQ 상세 조회 테스트
+     */
+    @Test
+    void getFAQDetailTest() {
+        // given: 먼저 등록되어 있다고 가정하는 FAQ ID
+        Long faqId = 1L;
+
+        // when
+        WebTestClient.ResponseSpec response = authenticatedGet("/admin/faqs/" + faqId)
+                .exchange()
+                .expectStatus().isOk();
+
+        // then
+        SuccessResponse<FAQDetailResponse> result = response.expectBody(
+                        new ParameterizedTypeReference<SuccessResponse<FAQDetailResponse>>() {})
+                .returnResult()
+                .getResponseBody();
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    static class FAQDetailResponse {
+        private Long id;
+        private String category;
+        private String question;
+        private String answer;
+        private Boolean isActive;
     }
 }

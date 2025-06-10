@@ -1,8 +1,10 @@
 package com.connecple.connecple_backend.domain.faq.service;
 
 import com.connecple.connecple_backend.domain.faq.entity.FAQManagement;
+import com.connecple.connecple_backend.domain.faq.entity.dto.FAQDetailResponse;
 import com.connecple.connecple_backend.domain.faq.entity.request.FAQCreateRequest;
 import com.connecple.connecple_backend.domain.faq.repository.FAQManagementRepository;
+import com.connecple.connecple_backend.global.exception.BaseException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,5 +26,11 @@ public class FAQManagementService {
                 .build();
 
         faqManagementRepository.save(faq);
+    }
+
+    public FAQDetailResponse getFAQById(Long id) {
+        FAQManagement faq = faqManagementRepository.findByIdAndIsDeletedFalse(id)
+                .orElseThrow(() -> new BaseException(404, "해당 FAQ가 존재하지 않습니다."));
+        return FAQDetailResponse.fromEntity(faq);
     }
 }
