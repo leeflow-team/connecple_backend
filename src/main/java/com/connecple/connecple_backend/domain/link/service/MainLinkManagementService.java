@@ -1,7 +1,7 @@
-package com.connecple.connecple_backend.domain.main.link.service;
+package com.connecple.connecple_backend.domain.link.service;
 
-import com.connecple.connecple_backend.domain.main.link.dto.MainLinkResponseDto;
-import com.connecple.connecple_backend.domain.main.link.repository.MainLinkManagementRepository;
+import com.connecple.connecple_backend.domain.link.dto.MainLinkResponseDto;
+import com.connecple.connecple_backend.domain.link.repository.MainLinkManagementRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

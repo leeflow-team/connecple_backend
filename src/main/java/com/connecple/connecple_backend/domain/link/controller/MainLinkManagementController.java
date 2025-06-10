@@ -1,9 +1,9 @@
-package com.connecple.connecple_backend.domain.main.link.controller;
+package com.connecple.connecple_backend.domain.link.controller;
 
 import static com.connecple.connecple_backend.global.common.LoginChecker.checkAdmin;
 
-import com.connecple.connecple_backend.domain.main.link.dto.MainLinkResponseDto;
-import com.connecple.connecple_backend.domain.main.link.service.MainLinkManagementService;
+import com.connecple.connecple_backend.domain.link.dto.MainLinkResponseDto;
+import com.connecple.connecple_backend.domain.link.service.MainLinkManagementService;
 import com.connecple.connecple_backend.global.dto.SuccessResponse;
 import jakarta.servlet.http.HttpSession;
 import java.util.List;

@@ -1,4 +1,4 @@
-package com.connecple.connecple_backend.domain.main.link.entity;
+package com.connecple.connecple_backend.domain.link.entity;
 
 import com.connecple.connecple_backend.domain.base.BaseTimeEntity;
 import jakarta.persistence.*;

@@ -1,6 +1,6 @@
-package com.connecple.connecple_backend.domain.main.link.dto;
+package com.connecple.connecple_backend.domain.link.dto;
 
-import com.connecple.connecple_backend.domain.main.link.entity.MainLinkManagement;
+import com.connecple.connecple_backend.domain.link.entity.MainLinkManagement;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
