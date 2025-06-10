@@ -1,4 +1,4 @@
-package com.connecple.connecple_backend.domain.link.dto;
+package com.connecple.connecple_backend.domain.link.entity.dto;
 
 import com.connecple.connecple_backend.domain.link.entity.MainLinkManagement;
 import lombok.AllArgsConstructor;

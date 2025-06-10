@@ -21,9 +21,7 @@ public class MainLinkManagement extends BaseTimeEntity {
     @Column(nullable = false)
     private String linkPath;
 
-    @Builder
-    public MainLinkManagement(String title, String linkPath) {
-        this.title = title;
+    public void updateLinkPath(String linkPath) {
         this.linkPath = linkPath;
     }
 }

@@ -51,4 +51,48 @@ class MainLinkManagementControllerTest extends AbstractWebTest {
     static class SuccessResponse<T> {
         private T data;
     }
+
+    /**
+     * 정상 수정 테스트
+     */
+    @Test
+    void updateMainLinkSuccessTest() {
+        MainLinkUpdateRequest request = new MainLinkUpdateRequest(
+                "위드프로젝트 메인 링크 설정",
+                "https://connecple.com/updated"
+        );
+
+        WebTestClient.ResponseSpec response = authenticatedPatch("/admin/main-links", request)
+                .exchange()
+                .expectStatus().isOk();
+
+        String result = response.expectBody(String.class).returnResult().getResponseBody();
+        System.out.println("update success = " + result);
+    }
+
+    /**
+     * 존재하지 않는 title로 수정 시 예외 테스트
+     */
+    @Test
+    void updateMainLinkFailWhenTitleNotFound() {
+        MainLinkUpdateRequest request = new MainLinkUpdateRequest(
+                "존재하지 않는 타이틀",
+                "https://invalid-link.com"
+        );
+
+        WebTestClient.ResponseSpec response = authenticatedPatch("/admin/main-links", request)
+                .exchange()
+                .expectStatus().isBadRequest();
+
+        String result = response.expectBody(String.class).returnResult().getResponseBody();
+        System.out.println("update fail (not found) = " + result);
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    static class MainLinkUpdateRequest {
+        private String title;
+        private String linkPath;
+    }
 }

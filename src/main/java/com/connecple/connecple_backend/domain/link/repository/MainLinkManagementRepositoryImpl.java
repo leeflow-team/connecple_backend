@@ -1,7 +1,7 @@
 package com.connecple.connecple_backend.domain.link.repository;
 
 import com.connecple.connecple_backend.domain.link.entity.MainLinkManagement;
-import com.connecple.connecple_backend.domain.main.link.entity.QMainLinkManagement;
+import com.connecple.connecple_backend.domain.link.entity.QMainLinkManagement;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
