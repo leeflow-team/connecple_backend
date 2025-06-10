@@ -1,14 +1,14 @@
 package com.connecple.connecple_backend.global.exception;
 
-import jakarta.validation.ConstraintViolationException;
+import io.swagger.v3.oas.annotations.Hidden;
 import java.util.stream.Collectors;
-import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
+@Hidden
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(BaseException.class)

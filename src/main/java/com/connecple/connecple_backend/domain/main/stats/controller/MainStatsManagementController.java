@@ -32,7 +32,7 @@ public class MainStatsManagementController {
 
         checkAdmin(session);
         mainStatsManagementService.updateMainStats(request.getStatsList());
-        return ResponseEntity.ok(null);
+        return ResponseEntity.ok(SuccessResponse.success(null));
     }
 
     @GetMapping
