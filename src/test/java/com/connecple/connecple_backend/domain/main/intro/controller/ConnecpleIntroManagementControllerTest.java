@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.junit.jupiter.api.Test;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.util.List;
@@ -61,5 +62,45 @@ class ConnecpleIntroManagementControllerTest extends AbstractWebTest {
     @NoArgsConstructor
     static class ConnecpleHistoryBulkSaveRequest {
         private List<ConnecpleHistorySaveRequest> historyList;
+    }
+
+
+    /**
+     * 연혁 전체 조회 테스트
+     */
+    @Test
+    void getAllIntroHistoriesTest() {
+        WebTestClient.ResponseSpec response = authenticatedGet("/admin/intro/history")
+                .exchange()
+                .expectStatus().isOk();
+
+        SuccessResponse<List<ConnecpleHistoryResponse>> result = response.expectBody(
+                        new ParameterizedTypeReference<SuccessResponse<List<ConnecpleHistoryResponse>>>() {})
+                .returnResult()
+                .getResponseBody();
+
+        List<ConnecpleHistoryResponse> historyList = result.getData();
+        System.out.println("총 연도 수: " + historyList.size());
+
+        for (ConnecpleHistoryResponse history : historyList) {
+            System.out.println("연도: " + history.getHistoryYear());
+            System.out.println("내용: \n" + history.getContent());
+        }
+    }
+
+    // 내부 응답 DTO 정의
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    static class ConnecpleHistoryResponse {
+        private String historyYear;
+        private String content;
+    }
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    static class SuccessResponse<T> {
+        private T data;
     }
 }
