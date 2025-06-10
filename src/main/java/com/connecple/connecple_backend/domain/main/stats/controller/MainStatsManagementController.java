@@ -36,7 +36,8 @@ public class MainStatsManagementController {
     }
 
     @GetMapping
-    public ResponseEntity<SuccessResponse<List<MainStatsResponseDto>>> getMainStats() {
+    public ResponseEntity<SuccessResponse<List<MainStatsResponseDto>>> getMainStats(HttpSession session) {
+        checkAdmin(session);
         return ResponseEntity.ok(SuccessResponse.success(mainStatsManagementService.getMainStats()));
     }
 }

@@ -31,7 +31,8 @@ public class MainLinkManagementController {
     }
 
     @PatchMapping
-    public ResponseEntity<SuccessResponse<Void>> updateMainLink(@RequestBody @Valid MainLinkUpdateRequest request) {
+    public ResponseEntity<SuccessResponse<Void>> updateMainLink(HttpSession session, @RequestBody @Valid MainLinkUpdateRequest request) {
+        checkAdmin(session);
         mainLinkManagementService.updateMainLink(request);
         return ResponseEntity.ok(SuccessResponse.success());
     }
