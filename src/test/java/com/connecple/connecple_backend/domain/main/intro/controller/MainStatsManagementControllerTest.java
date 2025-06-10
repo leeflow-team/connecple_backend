@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import com.connecple.connecple_backend.domain.main.stats.entity.request.MainStatsUpdateRequest;
+import com.connecple.connecple_backend.domain.main.stats.entity.request.MainStatsUpdateRequestList;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -31,24 +33,17 @@ class MainStatsManagementControllerTest extends AbstractWebTest {
                 new MainStatsUpdateRequest("커넥플과 함께 재도약에 성공한 경력보유여성", new BigDecimal("81"), "명", 5L)
         );
 
-        WebTestClient.ResponseSpec response = authenticatedPost("/admin/stats", request)
+        MainStatsUpdateRequestList wrappedRequest = new MainStatsUpdateRequestList(request);
+
+
+
+        WebTestClient.ResponseSpec response = authenticatedPost("/admin/stats", wrappedRequest)
                 .exchange()
                 .expectStatus().isOk();
 
         String result = response.expectBody(String.class).returnResult().getResponseBody();
         System.out.println("update-main-stats result = " + result);
     }
-
-    @Getter
-    @AllArgsConstructor
-    @NoArgsConstructor
-    static class MainStatsUpdateRequest {
-        private String statsName;
-        private BigDecimal statistic;
-        private String unit;
-        private Long sortOrder;
-    }
-
 
     /**
      * 메인 통계 수치 조회 테스트
