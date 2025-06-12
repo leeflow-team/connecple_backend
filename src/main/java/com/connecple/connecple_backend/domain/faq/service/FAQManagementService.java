@@ -3,6 +3,7 @@ package com.connecple.connecple_backend.domain.faq.service;
 import com.connecple.connecple_backend.domain.faq.entity.FAQManagement;
 import com.connecple.connecple_backend.domain.faq.entity.dto.FAQDetailResponse;
 import com.connecple.connecple_backend.domain.faq.entity.request.FAQCreateRequest;
+import com.connecple.connecple_backend.domain.faq.entity.request.FAQUpdateRequest;
 import com.connecple.connecple_backend.domain.faq.repository.FAQManagementRepository;
 import com.connecple.connecple_backend.global.exception.BaseException;
 import lombok.RequiredArgsConstructor;
@@ -33,4 +34,14 @@ public class FAQManagementService {
                 .orElseThrow(() -> new BaseException(404, "해당 FAQ가 존재하지 않습니다."));
         return FAQDetailResponse.fromEntity(faq);
     }
+
+    @Transactional
+    public void updateFAQ(Long id, FAQUpdateRequest request) {
+        FAQManagement faq = faqManagementRepository.findByIdAndIsDeletedFalse(id)
+                .orElseThrow(() -> new BaseException(404, "해당 FAQ가 존재하지 않습니다."));
+
+        faq.update(request.getCategory(), request.getQuestion(), request.getAnswer(), request.getIsActive());
+        faqManagementRepository.save(faq);
+    }
+
 }
