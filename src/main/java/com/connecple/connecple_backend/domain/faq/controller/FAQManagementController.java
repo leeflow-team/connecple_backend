@@ -10,7 +10,9 @@ import com.connecple.connecple_backend.global.dto.SuccessResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Description;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -50,5 +52,15 @@ public class FAQManagementController {
         faqManagementService.updateFAQ(faqId, request);
         return ResponseEntity.ok(SuccessResponse.success());
     }
+
+    @DeleteMapping("/{id}")
+    @Description("FAQ 삭제")
+    public ResponseEntity<SuccessResponse<Void>> deleteFAQ(HttpSession session,
+                                                           @PathVariable("id") Long id) {
+        checkAdmin(session);
+        faqManagementService.deleteFAQ(id);
+        return ResponseEntity.ok(SuccessResponse.success());
+    }
+
 
 }
