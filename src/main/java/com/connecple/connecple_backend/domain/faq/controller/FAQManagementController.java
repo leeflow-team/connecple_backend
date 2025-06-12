@@ -2,15 +2,19 @@ package com.connecple.connecple_backend.domain.faq.controller;
 
 import static com.connecple.connecple_backend.global.common.LoginChecker.checkAdmin;
 
+import com.connecple.connecple_backend.domain.faq.entity.dto.FAQAllResponse;
 import com.connecple.connecple_backend.domain.faq.entity.dto.FAQDetailResponse;
+import com.connecple.connecple_backend.domain.faq.entity.dto.FAQListResponse;
 import com.connecple.connecple_backend.domain.faq.entity.request.FAQCreateRequest;
 import com.connecple.connecple_backend.domain.faq.entity.request.FAQUpdateRequest;
 import com.connecple.connecple_backend.domain.faq.service.FAQManagementService;
 import com.connecple.connecple_backend.global.dto.SuccessResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Description;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,6 +23,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -60,6 +65,31 @@ public class FAQManagementController {
         checkAdmin(session);
         faqManagementService.deleteFAQ(id);
         return ResponseEntity.ok(SuccessResponse.success());
+    }
+
+    @Description("FAQ 전체 조회")
+    @GetMapping
+    public ResponseEntity<SuccessResponse<FAQListResponse>> readAllFAQs(HttpSession session,
+                                                                        @RequestParam(name = "sortBy", defaultValue = "createdAt") String sortBy,
+                                                                        @RequestParam(name = "page", defaultValue = "0") int page,
+                                                                        @RequestParam(name = "size", defaultValue = "10") int size) {
+        checkAdmin(session);
+        return ResponseEntity.ok().body(SuccessResponse.success(
+                faqManagementService.readAllFAQ(page, size, sortBy)
+        ));
+    }
+
+    @Description("FAQ 키워드 기반 검색")
+    @GetMapping("/search")
+    public ResponseEntity<SuccessResponse<FAQListResponse>> searchFAQ(HttpSession session,
+                                                                           @RequestParam("keyword") String keyword,
+                                                                           @RequestParam(name="sortBy", required = false, defaultValue = "createdAt") String sortBy,
+                                                                           @RequestParam(name="page", required = false, defaultValue = "0") int page,
+                                                                           @RequestParam(name="size", required = false, defaultValue = "10") int size) {
+
+        checkAdmin(session);
+        FAQListResponse response = faqManagementService.searchFAQ(keyword, page, size, sortBy);
+        return ResponseEntity.ok().body(SuccessResponse.success(response));
     }
 
 
