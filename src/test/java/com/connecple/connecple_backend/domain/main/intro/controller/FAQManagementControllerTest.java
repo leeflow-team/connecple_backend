@@ -1,6 +1,8 @@
 package com.connecple.connecple_backend.domain.main.intro.controller;
 
 import com.connecple.connecple_backend.domain.AbstractWebTest;
+import com.connecple.connecple_backend.domain.faq.entity.FAQManagement;
+import com.connecple.connecple_backend.domain.faq.entity.request.FAQUpdateRequest;
 import com.connecple.connecple_backend.global.dto.SuccessResponse;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -70,4 +72,34 @@ class FAQManagementControllerTest extends AbstractWebTest {
         private String answer;
         private Boolean isActive;
     }
+
+    /**
+     * FAQ 수정 테스트
+     */
+    @Test
+    void updateFAQTest() {
+        // given: 수정할 대상 ID는 테스트용으로 1L로 가정
+        Long faqId = 1L;
+
+        FAQUpdateRequest request = new FAQUpdateRequest(
+                "수정된 카테고리",
+                "수정된 질문입니다.",
+                "수정된 답변입니다.",
+                false
+        );
+
+        // when
+        WebTestClient.ResponseSpec response = authenticatedPatch("/admin/faqs/" + faqId, request)
+                .exchange()
+                .expectStatus().isOk();
+
+        // then
+        SuccessResponse<Void> result = response.expectBody(
+                        new ParameterizedTypeReference<SuccessResponse<Void>>() {})
+                .returnResult()
+                .getResponseBody();
+
+        System.out.println("updateFAQTest result = " + result);
+    }
+
 }

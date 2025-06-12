@@ -42,4 +42,17 @@ public class FAQManagement extends BaseTimeEntity {
         this.isActive = isActive;
         this.isDeleted = false;
     }
+
+    public void update(String category, String question, String answer, Boolean isActive) {
+        this.category = category;
+        this.question = question;
+        this.answer = answer;
+        this.isActive = isActive;
+    }
+
+    public void deleteFAQ() {
+        this.isDeleted = true;
+        this.deletedAt = LocalDateTime.now();
+    }
+
 }
