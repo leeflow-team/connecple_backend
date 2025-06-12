@@ -1,6 +1,7 @@
-package com.connecple.connecple_backend.domain.support.notice.entity;
+package com.connecple.connecple_backend.domain.notice.entity;
 
 import com.connecple.connecple_backend.domain.base.BaseTimeEntity;
+import com.connecple.connecple_backend.domain.notice.dto.req.NoticeCreateRequest;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -42,4 +43,17 @@ public class NoticeManagement extends BaseTimeEntity {
         this.isActive = isActive;
         this.isDeleted = false;
     }
+
+    public void updateNoticeManagement(NoticeCreateRequest request){
+        this.category = request.getCategory();
+        this.title = request.getTitle();
+        this.content = request.getContent();
+        this.isActive = request.getIsActive();
+    }
+
+    public void deleteNoticeManagement(){
+        this.isDeleted = true;
+        this.deletedAt = LocalDateTime.now();
+    }
+
 }

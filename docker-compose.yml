@@ -1,0 +1,16 @@
+services:
+  organization-db:
+    image: mysql:8.0
+    container_name: connecple_db
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: connecple
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: 1234
+    ports:
+      - "3306:3306"
+    volumes:
+      - connecple_db_data:/var/lib/mysql
+
+volumes:
+  connecple_db_data:
