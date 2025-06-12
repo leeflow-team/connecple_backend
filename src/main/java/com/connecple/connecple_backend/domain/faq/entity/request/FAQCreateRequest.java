@@ -11,15 +11,15 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class FAQCreateRequest {
 
-    @NotBlank(message = "카테고리는 필수입니다.")
+    @NotBlank(message = "카테고리 설정은 필수입니다.")
     private String category;
 
-    @NotBlank(message = "질문은 필수입니다.")
+    @NotBlank(message = "질문 작성은 필수입니다.")
     private String question;
 
-    @NotBlank(message = "답변은 필수입니다.")
+    @NotBlank(message = "답변 작성은 필수입니다.")
     private String answer;
 
-    @NotNull(message = "상태는 필수입니다.")
+    @NotNull(message = "상태 설정은 필수입니다.")
     private Boolean isActive;
 }
