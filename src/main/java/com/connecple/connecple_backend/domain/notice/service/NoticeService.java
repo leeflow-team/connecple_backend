@@ -87,69 +87,64 @@ public class NoticeService {
     return NoticeDetailResponse.fromEntity(noticeManagement);
   }
 
- @Description("제목, 카테고리, 내용 기반 검색, (페이지네이션, 10, 30, 50 개씩 보기 가능, 삭제된 것은 조회 안됨, 전체 개수도 카운트해서 반환)")
-  public Page<NoticeAllResponse> searchNotice(String keyword, int page, int size, String sortBy){
-    // 페이지 크기 제한
-    int pageSize = switch (size) {
-      case 30 -> 30;
-      case 50 -> 50;
-      default -> 10;
-    };
+    @Description("제목, 카테고리, 내용 기반 검색")
+    @Transactional(readOnly = true)
+    public NoticeListResponse searchNotice(String keyword, int page, int size, String sortBy) {
+        int pageSize = switch (size) {
+            case 30 -> 30;
+            case 50 -> 50;
+            default -> 10;
+        };
 
-    // 정렬 조건 설정
-    Sort sort = Sort.by(
-        "createdAt".equals(sortBy) ? "createdAt" : "updatedAt"
-    ).descending();
+        Sort sort = Sort.by("createdAt".equals(sortBy) ? "createdAt" : "updatedAt").descending();
+        Pageable pageable = PageRequest.of(page, pageSize, sort);
 
-    Pageable pageable = PageRequest.of(page, pageSize, sort);
+        QNoticeManagement qNoticeManagement = QNoticeManagement.noticeManagement;
+        BooleanBuilder builder = new BooleanBuilder();
+        builder.and(qNoticeManagement.isDeleted.isFalse());
 
-   QNoticeManagement qNoticeManagement = QNoticeManagement.noticeManagement;
-   BooleanBuilder builder = new BooleanBuilder();
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            builder.and(
+                    qNoticeManagement.title.containsIgnoreCase(keyword)
+                            .or(qNoticeManagement.category.containsIgnoreCase(keyword))
+                            .or(qNoticeManagement.content.containsIgnoreCase(keyword))
+            );
+        }
 
-   // 삭제되지 않은 공지만 조회
-   builder.and(qNoticeManagement.isDeleted.isFalse());
+        List<NoticeManagement> noticeList = jpaQueryFactory.selectFrom(qNoticeManagement)
+                .where(builder)
+                .orderBy("createdAt".equals(sortBy) ?
+                        qNoticeManagement.createdAt.desc() : qNoticeManagement.updatedAt.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
 
-   // 키워드가 null 또는 빈 문자열이 아닌 경우 검색 조건 추가
-   if (keyword != null && !keyword.trim().isEmpty()) {
-     builder.and(
-         qNoticeManagement.title.containsIgnoreCase(keyword)
-             .or(qNoticeManagement.category.containsIgnoreCase(keyword))
-             .or(qNoticeManagement.content.containsIgnoreCase(keyword))
-     );
-   }
+        long total = jpaQueryFactory
+                .selectFrom(qNoticeManagement)
+                .where(builder)
+                .fetchCount();
 
-   // QueryDSL 쿼리 실행
-   List<NoticeManagement> noticeList = jpaQueryFactory.selectFrom(qNoticeManagement)
-       .where(builder)
-       .orderBy("createdAt".equals(sortBy) ?
-           qNoticeManagement.createdAt.desc() : qNoticeManagement.updatedAt.desc())
-       .offset(pageable.getOffset())
-       .limit(pageable.getPageSize())
-       .fetch();
+        List<NoticeAllResponse> responseList = noticeList.stream()
+                .map(notice -> new NoticeAllResponse(
+                        notice.getId(),
+                        notice.getCategory(),
+                        notice.getTitle(),
+                        notice.getIsActive(),
+                        notice.getCreatedAt()
+                ))
+                .toList();
 
-   // 전체 개수 카운트
-   long total = jpaQueryFactory
-       .selectFrom(qNoticeManagement)
-       .where(builder)
-       .fetchCount();
+        return new NoticeListResponse(
+                responseList,
+                total,
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                (int) Math.ceil((double) total / pageable.getPageSize())
+        );
+    }
 
-   // NoticeManagement -> NoticeAllResponse 변환
-   List<NoticeAllResponse> responseList = noticeList.stream()
-       .map(noticeManagement -> new NoticeAllResponse(
-           noticeManagement.getId(),
-           noticeManagement.getCategory(),
-           noticeManagement.getTitle(),
-           noticeManagement.getIsActive(),
-           noticeManagement.getCreatedAt()
-       ))
-       .toList();
 
-   // Page 객체로 반환
-   return new PageImpl<>(responseList, pageable, total);
-
-  }
-
-  @Description("공지 수정, 삭제된 것은 수정 안됨")
+    @Description("공지 수정, 삭제된 것은 수정 안됨")
   @Transactional
   public void updateNotice(Long id, NoticeCreateRequest request){
     NoticeManagement notice = noticeRepository.findByIdAndIsDeletedIsFalse(id).orElseThrow(() -> new BaseException(400, "해당 공지사항을 찾을 수 없습니다"));

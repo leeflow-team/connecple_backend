@@ -80,16 +80,19 @@ public class NoticeController {
     return ResponseEntity.ok().body(SuccessResponse.success());
   }
 
-  @Description("키워드 기반 검색")
+  @Description("공지 키워드 기반 검색")
   @GetMapping("/search")
-  public ResponseEntity<SuccessResponse<List<NoticeAllResponse>>> searchNotice(HttpSession session,
-                                                                               @RequestParam("keyword") String keyword,
-                                                                               @RequestParam(name="sortBy", required = false, defaultValue = "createdAt") String sortBy,
-                                                                               @RequestParam(name="page", required = false, defaultValue = "0") int page,
-                                                                               @RequestParam(name="size", required = false, defaultValue = "10") int size){
+  public ResponseEntity<SuccessResponse<NoticeListResponse>> searchNotice(HttpSession session,
+                                                                          @RequestParam("keyword") String keyword,
+                                                                          @RequestParam(name = "sortBy", required = false, defaultValue = "createdAt") String sortBy,
+                                                                          @RequestParam(name = "page", required = false, defaultValue = "0") int page,
+                                                                          @RequestParam(name = "size", required = false, defaultValue = "10") int size) {
+
     checkAdmin(session);
-    return ResponseEntity.ok().body(SuccessResponse.success(noticeService.searchNotice(keyword, page, size, sortBy).getContent()));
+    NoticeListResponse result = noticeService.searchNotice(keyword, page, size, sortBy);
+    return ResponseEntity.ok().body(SuccessResponse.success(result));
   }
+
 
 
 }
