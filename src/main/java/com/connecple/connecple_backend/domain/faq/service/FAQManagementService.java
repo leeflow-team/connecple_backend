@@ -66,20 +66,23 @@ public class FAQManagementService {
     }
 
     @Transactional(readOnly = true)
-    public FAQListResponse readAllFAQ(int page, int size, String sortBy) {
+    public FAQListResponse readAllFAQ(String category, int page, int size, String sortBy) {
         int pageSize = switch (size) {
             case 30 -> 30;
             case 50 -> 50;
             default -> 10;
         };
 
-        Sort sort = Sort.by(
-                "createdAt".equals(sortBy) ? "createdAt" : "updatedAt"
-        ).descending();
-
+        Sort sort = Sort.by("createdAt".equals(sortBy) ? "createdAt" : "updatedAt").descending();
         Pageable pageable = PageRequest.of(page, pageSize, sort);
 
-        Page<FAQManagement> pageResult = faqManagementRepository.findAllByIsDeletedIsFalse(pageable);
+        Page<FAQManagement> pageResult;
+
+        if (category != null && !category.trim().isEmpty()) {
+            pageResult = faqManagementRepository.findAllByIsDeletedIsFalseAndCategory(category, pageable);
+        } else {
+            pageResult = faqManagementRepository.findAllByIsDeletedIsFalse(pageable);
+        }
 
         List<FAQAllResponse> resultList = pageResult.getContent().stream()
                 .map(faq -> new FAQAllResponse(
@@ -99,6 +102,7 @@ public class FAQManagementService {
                 pageResult.getTotalPages()
         );
     }
+
 
     @Transactional(readOnly = true)
     public FAQListResponse searchFAQ(String keyword, int page, int size, String sortBy) {

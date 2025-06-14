@@ -11,4 +11,6 @@ import org.springframework.stereotype.Repository;
 public interface NoticeRepository extends JpaRepository<NoticeManagement, Long> {
   Optional<NoticeManagement> findByIdAndIsDeletedIsFalse(Long id);
   Page<NoticeManagement> findAllByIsDeletedIsFalse(Pageable pageable);
+  Page<NoticeManagement> findAllByIsDeletedIsFalseAndCategory(String category, Pageable pageable); // ✅ 추가
+
 }

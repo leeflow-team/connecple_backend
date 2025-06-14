@@ -43,15 +43,19 @@ public class NoticeController {
     return ResponseEntity.ok().body(SuccessResponse.success());
   }
 
-  @Description("공지 전체 조회")
+  @Description("공지 전체 조회 (카테고리 필터링 포함)")
   @GetMapping
   public ResponseEntity<SuccessResponse<NoticeListResponse>> readAllNotice(HttpSession session,
-                                                                           @RequestParam(name="sortBy", required = false, defaultValue = "createdAt") String sortBy,
-                                                                           @RequestParam(name="page", required = false, defaultValue = "0") int page,
-                                                                           @RequestParam(name="size", required = false, defaultValue = "10") int size){
+                                                                           @RequestParam(name = "category", required = false) String category,
+                                                                           @RequestParam(name = "sortBy", required = false, defaultValue = "createdAt") String sortBy,
+                                                                           @RequestParam(name = "page", required = false, defaultValue = "0") int page,
+                                                                           @RequestParam(name = "size", required = false, defaultValue = "10") int size) {
     checkAdmin(session);
-    return ResponseEntity.ok().body(SuccessResponse.success(noticeService.readAllNotice(page, size, sortBy)));
+    return ResponseEntity.ok().body(SuccessResponse.success(
+            noticeService.readAllNotice(category, page, size, sortBy)
+    ));
   }
+
 
   @Description("공지 세부 조회")
   @GetMapping("/{id}")

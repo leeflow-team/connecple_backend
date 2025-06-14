@@ -41,46 +41,45 @@ public class NoticeService {
 
   @Description("공지 전체 조회 (페이지네이션, 10, 30, 50 개씩 보기 가능, 삭제된 것은 조회 안됨, 전체 개수도 카운트해서 반환)")
   @Transactional(readOnly = true)
-  public NoticeListResponse readAllNotice(int page, int size, String sortBy){
-    // 페이지 크기 제한
-    int pageSize = switch (size) {
-      case 30 -> 30;
-      case 50 -> 50;
-      default -> 10;
-    };
+  public NoticeListResponse readAllNotice(String category, int page, int size, String sortBy) {
+      int pageSize = switch (size) {
+          case 30 -> 30;
+          case 50 -> 50;
+          default -> 10;
+      };
 
-    // 정렬 조건 설정
-    Sort sort = Sort.by(
-        "createdAt".equals(sortBy) ? "createdAt" : "updatedAt"
-    ).descending();
+      Sort sort = Sort.by("createdAt".equals(sortBy) ? "createdAt" : "updatedAt").descending();
+      Pageable pageable = PageRequest.of(page, pageSize, sort);
 
-    Pageable pageable = PageRequest.of(page, pageSize, sort);
+      Page<NoticeManagement> noticeManagementPage;
 
-    Page<NoticeManagement> noticeManagementPage = noticeRepository.findAllByIsDeletedIsFalse(pageable);
+      if (category != null && !category.trim().isEmpty()) {
+          noticeManagementPage = noticeRepository.findAllByIsDeletedIsFalseAndCategory(category, pageable);
+      } else {
+          noticeManagementPage = noticeRepository.findAllByIsDeletedIsFalse(pageable);
+      }
 
-    // NoticeManagement -> NoticeAllResponse 변환
-    List<NoticeAllResponse> responseList = noticeManagementPage.getContent().stream()
-        .map(noticeManagement -> new NoticeAllResponse(
-            noticeManagement.getId(),
-            noticeManagement.getCategory(),
-            noticeManagement.getTitle(),
-            noticeManagement.getIsActive(),
-            noticeManagement.getCreatedAt()
-        ))
-        .toList();
+      List<NoticeAllResponse> responseList = noticeManagementPage.getContent().stream()
+              .map(notice -> new NoticeAllResponse(
+                      notice.getId(),
+                      notice.getCategory(),
+                      notice.getTitle(),
+                      notice.getIsActive(),
+                      notice.getCreatedAt()
+              ))
+              .toList();
 
-    // Custom response with total count
-    return new NoticeListResponse(
-        responseList,
-        noticeManagementPage.getTotalElements(), // Total count
-        noticeManagementPage.getNumber(),
-        noticeManagementPage.getSize(),
-        noticeManagementPage.getTotalPages()
-    );
-
+      return new NoticeListResponse(
+              responseList,
+              noticeManagementPage.getTotalElements(),
+              noticeManagementPage.getNumber(),
+              noticeManagementPage.getSize(),
+              noticeManagementPage.getTotalPages()
+      );
   }
 
-  @Description("공지 상세 조회 (삭제된 것은 조회 안됨)")
+
+    @Description("공지 상세 조회 (삭제된 것은 조회 안됨)")
   @Transactional(readOnly = true)
   public NoticeDetailResponse readDetailNotice(@PathVariable("id") Long id){
     NoticeManagement noticeManagement = noticeRepository.findByIdAndIsDeletedIsFalse(id).orElseThrow(() -> new BaseException(400, "해당 공지사항을 찾을 수 없습니다"));
