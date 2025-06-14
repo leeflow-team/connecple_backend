@@ -66,7 +66,7 @@ public class FAQManagementService {
     }
 
     @Transactional(readOnly = true)
-    public FAQListResponse readAllFAQ(String category, int page, int size, String sortBy) {
+    public FAQListResponse readAllFAQ(List<String> categories, int page, int size, String sortBy) {
         int pageSize = switch (size) {
             case 30 -> 30;
             case 50 -> 50;
@@ -78,10 +78,10 @@ public class FAQManagementService {
 
         Page<FAQManagement> pageResult;
 
-        if (category != null && !category.trim().isEmpty()) {
-            pageResult = faqManagementRepository.findAllByIsDeletedIsFalseAndCategory(category, pageable);
-        } else {
+        if (categories == null || categories.isEmpty()) {
             pageResult = faqManagementRepository.findAllByIsDeletedIsFalse(pageable);
+        } else {
+            pageResult = faqManagementRepository.findAllByCategoryInAndIsDeletedFalse(categories, pageable);
         }
 
         List<FAQAllResponse> resultList = pageResult.getContent().stream()
@@ -105,7 +105,7 @@ public class FAQManagementService {
 
 
     @Transactional(readOnly = true)
-    public FAQListResponse searchFAQ(String keyword, int page, int size, String sortBy) {
+    public FAQListResponse searchFAQ(String keyword, List<String> categories, int page, int size, String sortBy) {
         int pageSize = switch (size) {
             case 30 -> 30;
             case 50 -> 50;
@@ -119,10 +119,15 @@ public class FAQManagementService {
         BooleanBuilder builder = new BooleanBuilder();
         builder.and(faq.isDeleted.isFalse());
 
+        // 카테고리 필터링
+        if (categories != null && !categories.isEmpty()) {
+            builder.and(faq.category.in(categories));
+        }
+
+        // 키워드는 question, answer에서만 검색
         if (keyword != null && !keyword.trim().isEmpty()) {
             builder.and(
-                    faq.category.containsIgnoreCase(keyword)
-                            .or(faq.question.containsIgnoreCase(keyword))
+                    faq.question.containsIgnoreCase(keyword)
                             .or(faq.answer.containsIgnoreCase(keyword))
             );
         }
@@ -147,6 +152,7 @@ public class FAQManagementService {
                 faqPage.getTotalPages()
         );
     }
+
 
 
 }

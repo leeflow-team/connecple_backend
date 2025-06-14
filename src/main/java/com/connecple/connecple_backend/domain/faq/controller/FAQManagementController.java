@@ -67,32 +67,35 @@ public class FAQManagementController {
         return ResponseEntity.ok(SuccessResponse.success());
     }
 
-    @Description("FAQ 전체 조회 (카테고리 필터링 포함)")
+    @Description("FAQ 전체 조회 (다중 카테고리 필터링 포함)")
     @GetMapping
     public ResponseEntity<SuccessResponse<FAQListResponse>> readAllFAQs(HttpSession session,
-                                                                        @RequestParam(name = "category", required = false) String category,
+                                                                        @RequestParam(name = "category", required = false) List<String> categories,
                                                                         @RequestParam(name = "sortBy", defaultValue = "createdAt") String sortBy,
                                                                         @RequestParam(name = "page", defaultValue = "0") int page,
                                                                         @RequestParam(name = "size", defaultValue = "10") int size) {
         checkAdmin(session);
         return ResponseEntity.ok().body(SuccessResponse.success(
-                faqManagementService.readAllFAQ(category, page, size, sortBy)
+                faqManagementService.readAllFAQ(categories, page, size, sortBy)
         ));
     }
 
 
     @Description("FAQ 키워드 기반 검색")
     @GetMapping("/search")
-    public ResponseEntity<SuccessResponse<FAQListResponse>> searchFAQ(HttpSession session,
-                                                                           @RequestParam("keyword") String keyword,
-                                                                           @RequestParam(name="sortBy", required = false, defaultValue = "createdAt") String sortBy,
-                                                                           @RequestParam(name="page", required = false, defaultValue = "0") int page,
-                                                                           @RequestParam(name="size", required = false, defaultValue = "10") int size) {
+    public ResponseEntity<SuccessResponse<FAQListResponse>> searchFAQ(
+            HttpSession session,
+            @RequestParam("keyword") String keyword,
+            @RequestParam(name = "category", required = false) List<String> categories,
+            @RequestParam(name = "sortBy", required = false, defaultValue = "createdAt") String sortBy,
+            @RequestParam(name = "page", required = false, defaultValue = "0") int page,
+            @RequestParam(name = "size", required = false, defaultValue = "10") int size) {
 
         checkAdmin(session);
-        FAQListResponse response = faqManagementService.searchFAQ(keyword, page, size, sortBy);
+        FAQListResponse response = faqManagementService.searchFAQ(keyword, categories, page, size, sortBy);
         return ResponseEntity.ok().body(SuccessResponse.success(response));
     }
+
 
 
 }

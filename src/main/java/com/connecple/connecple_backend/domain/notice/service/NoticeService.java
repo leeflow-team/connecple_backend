@@ -41,7 +41,7 @@ public class NoticeService {
 
   @Description("공지 전체 조회 (페이지네이션, 10, 30, 50 개씩 보기 가능, 삭제된 것은 조회 안됨, 전체 개수도 카운트해서 반환)")
   @Transactional(readOnly = true)
-  public NoticeListResponse readAllNotice(String category, int page, int size, String sortBy) {
+  public NoticeListResponse readAllNotice(List<String> categories, int page, int size, String sortBy) {
       int pageSize = switch (size) {
           case 30 -> 30;
           case 50 -> 50;
@@ -50,16 +50,14 @@ public class NoticeService {
 
       Sort sort = Sort.by("createdAt".equals(sortBy) ? "createdAt" : "updatedAt").descending();
       Pageable pageable = PageRequest.of(page, pageSize, sort);
-
-      Page<NoticeManagement> noticeManagementPage;
-
-      if (category != null && !category.trim().isEmpty()) {
-          noticeManagementPage = noticeRepository.findAllByIsDeletedIsFalseAndCategory(category, pageable);
+      Page<NoticeManagement> pageResult;
+      if (categories == null || categories.isEmpty()) {
+          pageResult = noticeRepository.findAllByIsDeletedIsFalse(pageable);
       } else {
-          noticeManagementPage = noticeRepository.findAllByIsDeletedIsFalse(pageable);
+          pageResult = noticeRepository.findAllByCategoryInAndIsDeletedFalse(categories, pageable);
       }
 
-      List<NoticeAllResponse> responseList = noticeManagementPage.getContent().stream()
+      List<NoticeAllResponse> responseList = pageResult.getContent().stream()
               .map(notice -> new NoticeAllResponse(
                       notice.getId(),
                       notice.getCategory(),
@@ -71,10 +69,10 @@ public class NoticeService {
 
       return new NoticeListResponse(
               responseList,
-              noticeManagementPage.getTotalElements(),
-              noticeManagementPage.getNumber(),
-              noticeManagementPage.getSize(),
-              noticeManagementPage.getTotalPages()
+              pageResult.getTotalElements(),
+              pageResult.getNumber(),
+              pageResult.getSize(),
+              pageResult.getTotalPages()
       );
   }
 
@@ -86,9 +84,9 @@ public class NoticeService {
     return NoticeDetailResponse.fromEntity(noticeManagement);
   }
 
-    @Description("제목, 카테고리, 내용 기반 검색")
+    @Description("제목, 내용 기반 검색 + 카테고리 필터링")
     @Transactional(readOnly = true)
-    public NoticeListResponse searchNotice(String keyword, int page, int size, String sortBy) {
+    public NoticeListResponse searchNotice(String keyword, List<String> categories, int page, int size, String sortBy) {
         int pageSize = switch (size) {
             case 30 -> 30;
             case 50 -> 50;
@@ -98,40 +96,36 @@ public class NoticeService {
         Sort sort = Sort.by("createdAt".equals(sortBy) ? "createdAt" : "updatedAt").descending();
         Pageable pageable = PageRequest.of(page, pageSize, sort);
 
-        QNoticeManagement qNoticeManagement = QNoticeManagement.noticeManagement;
+        QNoticeManagement q = QNoticeManagement.noticeManagement;
         BooleanBuilder builder = new BooleanBuilder();
-        builder.and(qNoticeManagement.isDeleted.isFalse());
+        builder.and(q.isDeleted.isFalse());
 
+        // 카테고리 필터링
+        if (categories != null && !categories.isEmpty()) {
+            builder.and(q.category.in(categories));
+        }
+
+        // 제목 / 내용 키워드 검색
         if (keyword != null && !keyword.trim().isEmpty()) {
             builder.and(
-                    qNoticeManagement.title.containsIgnoreCase(keyword)
-                            .or(qNoticeManagement.category.containsIgnoreCase(keyword))
-                            .or(qNoticeManagement.content.containsIgnoreCase(keyword))
+                    q.title.containsIgnoreCase(keyword)
+                            .or(q.content.containsIgnoreCase(keyword))
             );
         }
 
-        List<NoticeManagement> noticeList = jpaQueryFactory.selectFrom(qNoticeManagement)
+        List<NoticeManagement> notices = jpaQueryFactory.selectFrom(q)
                 .where(builder)
-                .orderBy("createdAt".equals(sortBy) ?
-                        qNoticeManagement.createdAt.desc() : qNoticeManagement.updatedAt.desc())
+                .orderBy("createdAt".equals(sortBy) ? q.createdAt.desc() : q.updatedAt.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        long total = jpaQueryFactory
-                .selectFrom(qNoticeManagement)
-                .where(builder)
-                .fetchCount();
+        long total = jpaQueryFactory.selectFrom(q).where(builder).fetchCount();
 
-        List<NoticeAllResponse> responseList = noticeList.stream()
-                .map(notice -> new NoticeAllResponse(
-                        notice.getId(),
-                        notice.getCategory(),
-                        notice.getTitle(),
-                        notice.getIsActive(),
-                        notice.getCreatedAt()
-                ))
-                .toList();
+        List<NoticeAllResponse> responseList = notices.stream()
+                .map(n -> new NoticeAllResponse(
+                        n.getId(), n.getCategory(), n.getTitle(), n.getIsActive(), n.getCreatedAt()
+                )).toList();
 
         return new NoticeListResponse(
                 responseList,
@@ -141,6 +135,7 @@ public class NoticeService {
                 (int) Math.ceil((double) total / pageable.getPageSize())
         );
     }
+
 
 
     @Description("공지 수정, 삭제된 것은 수정 안됨")

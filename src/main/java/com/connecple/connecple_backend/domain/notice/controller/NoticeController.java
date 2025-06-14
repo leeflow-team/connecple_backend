@@ -43,18 +43,19 @@ public class NoticeController {
     return ResponseEntity.ok().body(SuccessResponse.success());
   }
 
-  @Description("공지 전체 조회 (카테고리 필터링 포함)")
+  @Description("공지 전체 조회 (다중 카테고리 필터링 포함)")
   @GetMapping
   public ResponseEntity<SuccessResponse<NoticeListResponse>> readAllNotice(HttpSession session,
-                                                                           @RequestParam(name = "category", required = false) String category,
+                                                                           @RequestParam(name = "category", required = false) List<String> categories,
                                                                            @RequestParam(name = "sortBy", required = false, defaultValue = "createdAt") String sortBy,
                                                                            @RequestParam(name = "page", required = false, defaultValue = "0") int page,
                                                                            @RequestParam(name = "size", required = false, defaultValue = "10") int size) {
     checkAdmin(session);
     return ResponseEntity.ok().body(SuccessResponse.success(
-            noticeService.readAllNotice(category, page, size, sortBy)
+            noticeService.readAllNotice(categories, page, size, sortBy)
     ));
   }
+
 
 
   @Description("공지 세부 조회")
@@ -86,14 +87,16 @@ public class NoticeController {
 
   @Description("공지 키워드 기반 검색")
   @GetMapping("/search")
-  public ResponseEntity<SuccessResponse<NoticeListResponse>> searchNotice(HttpSession session,
-                                                                          @RequestParam("keyword") String keyword,
-                                                                          @RequestParam(name = "sortBy", required = false, defaultValue = "createdAt") String sortBy,
-                                                                          @RequestParam(name = "page", required = false, defaultValue = "0") int page,
-                                                                          @RequestParam(name = "size", required = false, defaultValue = "10") int size) {
+  public ResponseEntity<SuccessResponse<NoticeListResponse>> searchNotice(
+          HttpSession session,
+          @RequestParam("keyword") String keyword,
+          @RequestParam(name = "category", required = false) List<String> categories,
+          @RequestParam(name = "sortBy", required = false, defaultValue = "createdAt") String sortBy,
+          @RequestParam(name = "page", required = false, defaultValue = "0") int page,
+          @RequestParam(name = "size", required = false, defaultValue = "10") int size) {
 
     checkAdmin(session);
-    NoticeListResponse result = noticeService.searchNotice(keyword, page, size, sortBy);
+    NoticeListResponse result = noticeService.searchNotice(keyword, categories, page, size, sortBy);
     return ResponseEntity.ok().body(SuccessResponse.success(result));
   }
 
