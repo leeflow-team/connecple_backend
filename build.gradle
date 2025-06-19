@@ -51,6 +51,9 @@ dependencies {
 
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'	//Swagger
 
+	// AWS S3
+	implementation 'com.amazonaws:aws-java-sdk-s3:1.12.261'
+
 	/**
 	 * WebTestClient는 내부적으로 Netty 기반 HTTP 클라이언트를 사용
 	 * Netty는 DNS 해석을 빠르고 정밀하게 하기 위해 운영체제(OS) 네이티브 라이브러리를 사용할 수 있음
