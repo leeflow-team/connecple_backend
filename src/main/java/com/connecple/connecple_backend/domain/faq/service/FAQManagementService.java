@@ -143,6 +143,12 @@ public class FAQManagementService {
     public FAQDetailResponse getFAQById(Long id) {
         FAQManagement faq = faqManagementRepository.findByIdAndIsDeletedFalse(id)
                 .orElseThrow(() -> new BaseException(404, "해당 FAQ가 존재하지 않습니다."));
+
+        // 파일들을 명시적으로 로딩 (LAZY 로딩 해결)
+        List<FAQFile> files = faqFileRepository.findByFaqManagementId(id);
+        faq.getFiles().clear();
+        faq.getFiles().addAll(files);
+
         return FAQDetailResponse.fromEntity(faq);
     }
 
@@ -193,12 +199,16 @@ public class FAQManagementService {
         }
 
         List<FAQAllResponse> resultList = pageResult.getContent().stream()
-                .map(faq -> new FAQAllResponse(
-                        faq.getId(),
-                        faq.getCategory(),
-                        faq.getQuestion(),
-                        faq.getIsActive(),
-                        faq.getCreatedAt()))
+                .map(faq -> {
+                    int fileCount = faqFileRepository.findByFaqManagementId(faq.getId()).size();
+                    return new FAQAllResponse(
+                            faq.getId(),
+                            faq.getCategory(),
+                            faq.getQuestion(),
+                            faq.getIsActive(),
+                            faq.getCreatedAt(),
+                            fileCount);
+                })
                 .toList();
 
         return new FAQListResponse(
@@ -239,12 +249,16 @@ public class FAQManagementService {
         Page<FAQManagement> faqPage = faqManagementRepository.findAllWithQueryDsl(builder, pageable, sortBy);
 
         List<FAQAllResponse> responseList = faqPage.getContent().stream()
-                .map(f -> new FAQAllResponse(
-                        f.getId(),
-                        f.getCategory(),
-                        f.getQuestion(),
-                        f.getIsActive(),
-                        f.getCreatedAt()))
+                .map(f -> {
+                    int fileCount = faqFileRepository.findByFaqManagementId(f.getId()).size();
+                    return new FAQAllResponse(
+                            f.getId(),
+                            f.getCategory(),
+                            f.getQuestion(),
+                            f.getIsActive(),
+                            f.getCreatedAt(),
+                            fileCount);
+                })
                 .toList();
 
         return new FAQListResponse(
