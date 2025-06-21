@@ -1,6 +1,7 @@
 package com.connecple.connecple_backend.domain.faq.service;
 
 import com.connecple.connecple_backend.domain.faq.entity.FAQManagement;
+import com.connecple.connecple_backend.domain.faq.entity.FAQFile;
 import com.connecple.connecple_backend.domain.faq.entity.QFAQManagement;
 import com.connecple.connecple_backend.domain.faq.entity.dto.FAQAllResponse;
 import com.connecple.connecple_backend.domain.faq.entity.dto.FAQDetailResponse;
@@ -8,7 +9,9 @@ import com.connecple.connecple_backend.domain.faq.entity.dto.FAQListResponse;
 import com.connecple.connecple_backend.domain.faq.entity.request.FAQCreateRequest;
 import com.connecple.connecple_backend.domain.faq.entity.request.FAQUpdateRequest;
 import com.connecple.connecple_backend.domain.faq.repository.FAQManagementRepository;
+import com.connecple.connecple_backend.domain.faq.repository.FAQFileRepository;
 import com.connecple.connecple_backend.global.exception.BaseException;
+import com.connecple.connecple_backend.global.service.S3Service;
 import com.querydsl.core.BooleanBuilder;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +28,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class FAQManagementService {
 
     private final FAQManagementRepository faqManagementRepository;
+    private final FAQFileRepository faqFileRepository;
+    private final S3Service s3Service;
 
     @Transactional
     public void createFAQ(FAQCreateRequest request) {
@@ -60,6 +65,13 @@ public class FAQManagementService {
         FAQManagement faq = faqManagementRepository.findByIdAndIsDeletedFalse(id)
                 .orElseThrow(() -> new BaseException(400, "해당 FAQ를 찾을 수 없습니다."));
 
+        // FAQ에 연결된 파일들을 S3에서 실제 삭제
+        List<FAQFile> files = faqFileRepository.findByFaqManagementId(id);
+        for (FAQFile file : files) {
+            s3Service.deleteFile(file.getFilePath());
+        }
+
+        // FAQ soft delete
         faq.deleteFAQ();
 
         faqManagementRepository.save(faq);
@@ -90,8 +102,7 @@ public class FAQManagementService {
                         faq.getCategory(),
                         faq.getQuestion(),
                         faq.getIsActive(),
-                        faq.getCreatedAt()
-                ))
+                        faq.getCreatedAt()))
                 .toList();
 
         return new FAQListResponse(
@@ -99,10 +110,8 @@ public class FAQManagementService {
                 pageResult.getTotalElements(),
                 pageResult.getNumber(),
                 pageResult.getSize(),
-                pageResult.getTotalPages()
-        );
+                pageResult.getTotalPages());
     }
-
 
     @Transactional(readOnly = true)
     public FAQListResponse searchFAQ(String keyword, List<String> categories, int page, int size, String sortBy) {
@@ -128,8 +137,7 @@ public class FAQManagementService {
         if (keyword != null && !keyword.trim().isEmpty()) {
             builder.and(
                     faq.question.containsIgnoreCase(keyword)
-                            .or(faq.answer.containsIgnoreCase(keyword))
-            );
+                            .or(faq.answer.containsIgnoreCase(keyword)));
         }
 
         Page<FAQManagement> faqPage = faqManagementRepository.findAllWithQueryDsl(builder, pageable, sortBy);
@@ -140,8 +148,7 @@ public class FAQManagementService {
                         f.getCategory(),
                         f.getQuestion(),
                         f.getIsActive(),
-                        f.getCreatedAt()
-                ))
+                        f.getCreatedAt()))
                 .toList();
 
         return new FAQListResponse(
@@ -149,10 +156,7 @@ public class FAQManagementService {
                 faqPage.getTotalElements(),
                 faqPage.getNumber(),
                 faqPage.getSize(),
-                faqPage.getTotalPages()
-        );
+                faqPage.getTotalPages());
     }
-
-
 
 }
