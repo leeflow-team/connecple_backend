@@ -18,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
@@ -33,15 +35,22 @@ public class FAQManagementController {
 
     private final FAQManagementService faqManagementService;
 
-    @PostMapping
-    public ResponseEntity<SuccessResponse<Void>> createFAQ(HttpSession session, @RequestBody @Valid FAQCreateRequest request) {
+    @PostMapping(consumes = { "multipart/form-data" })
+    public ResponseEntity<SuccessResponse<Void>> createFAQ(
+            HttpSession session,
+            @RequestParam("category") String category,
+            @RequestParam("question") String question,
+            @RequestParam("answer") String answer,
+            @RequestParam("isActive") Boolean isActive,
+            @RequestParam(value = "files", required = false) List<MultipartFile> files) {
         checkAdmin(session);
-        faqManagementService.createFAQ(request);
+        faqManagementService.createFAQ(category, question, answer, isActive, files);
         return ResponseEntity.ok(SuccessResponse.success());
     }
 
     @GetMapping("/{faqId}")
-    public ResponseEntity<SuccessResponse<FAQDetailResponse>> getFAQDetail(HttpSession session, @PathVariable Long faqId) {
+    public ResponseEntity<SuccessResponse<FAQDetailResponse>> getFAQDetail(HttpSession session,
+            @PathVariable Long faqId) {
         checkAdmin(session);
         FAQDetailResponse response = faqManagementService.getFAQById(faqId);
         return ResponseEntity.ok(SuccessResponse.success(response));
@@ -51,8 +60,7 @@ public class FAQManagementController {
     public ResponseEntity<SuccessResponse<Void>> updateFAQ(
             HttpSession session,
             @PathVariable Long faqId,
-            @RequestBody @Valid FAQUpdateRequest request
-    ) {
+            @RequestBody @Valid FAQUpdateRequest request) {
         checkAdmin(session);
         faqManagementService.updateFAQ(faqId, request);
         return ResponseEntity.ok(SuccessResponse.success());
@@ -61,7 +69,7 @@ public class FAQManagementController {
     @DeleteMapping("/{id}")
     @Description("FAQ 삭제")
     public ResponseEntity<SuccessResponse<Void>> deleteFAQ(HttpSession session,
-                                                           @PathVariable("id") Long id) {
+            @PathVariable("id") Long id) {
         checkAdmin(session);
         faqManagementService.deleteFAQ(id);
         return ResponseEntity.ok(SuccessResponse.success());
@@ -70,16 +78,14 @@ public class FAQManagementController {
     @Description("FAQ 전체 조회 (다중 카테고리 필터링 포함)")
     @GetMapping
     public ResponseEntity<SuccessResponse<FAQListResponse>> readAllFAQs(HttpSession session,
-                                                                        @RequestParam(name = "category", required = false) List<String> categories,
-                                                                        @RequestParam(name = "sortBy", defaultValue = "createdAt") String sortBy,
-                                                                        @RequestParam(name = "page", defaultValue = "0") int page,
-                                                                        @RequestParam(name = "size", defaultValue = "10") int size) {
+            @RequestParam(name = "category", required = false) List<String> categories,
+            @RequestParam(name = "sortBy", defaultValue = "createdAt") String sortBy,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size) {
         checkAdmin(session);
         return ResponseEntity.ok().body(SuccessResponse.success(
-                faqManagementService.readAllFAQ(categories, page, size, sortBy)
-        ));
+                faqManagementService.readAllFAQ(categories, page, size, sortBy)));
     }
-
 
     @Description("FAQ 키워드 기반 검색")
     @GetMapping("/search")
@@ -95,7 +101,5 @@ public class FAQManagementController {
         FAQListResponse response = faqManagementService.searchFAQ(keyword, categories, page, size, sortBy);
         return ResponseEntity.ok().body(SuccessResponse.success(response));
     }
-
-
 
 }

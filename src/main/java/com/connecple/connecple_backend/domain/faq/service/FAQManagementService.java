@@ -15,6 +15,7 @@ import com.connecple.connecple_backend.global.service.S3Service;
 import com.querydsl.core.BooleanBuilder;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Description;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -22,7 +23,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class FAQManagementService {
@@ -33,6 +36,7 @@ public class FAQManagementService {
 
     @Transactional
     public void createFAQ(FAQCreateRequest request) {
+        // FAQ 엔티티 생성 및 저장
         FAQManagement faq = FAQManagement.builder()
                 .category(request.getCategory())
                 .question(request.getQuestion())
@@ -41,7 +45,99 @@ public class FAQManagementService {
                 .isDeleted(false)
                 .build();
 
-        faqManagementRepository.save(faq);
+        FAQManagement savedFAQ = faqManagementRepository.save(faq);
+
+        // 파일 업로드 및 저장
+        if (request.getFiles() != null && !request.getFiles().isEmpty()) {
+            uploadAndSaveFiles(request.getFiles(), savedFAQ);
+        }
+    }
+
+    @Transactional
+    public void createFAQ(String category, String question, String answer, Boolean isActive,
+            List<MultipartFile> files) {
+        // 입력 값 검증
+        if (category == null || category.trim().isEmpty()) {
+            throw new BaseException(400, "카테고리 설정은 필수입니다.");
+        }
+        if (question == null || question.trim().isEmpty()) {
+            throw new BaseException(400, "질문 작성은 필수입니다.");
+        }
+        if (answer == null || answer.trim().isEmpty()) {
+            throw new BaseException(400, "답변 작성은 필수입니다.");
+        }
+        if (isActive == null) {
+            throw new BaseException(400, "상태 설정은 필수입니다.");
+        }
+
+        // FAQ 엔티티 생성 및 저장
+        FAQManagement faq = FAQManagement.builder()
+                .category(category.trim())
+                .question(question.trim())
+                .answer(answer.trim())
+                .isActive(isActive)
+                .isDeleted(false)
+                .build();
+
+        FAQManagement savedFAQ = faqManagementRepository.save(faq);
+
+        // 파일 업로드 및 저장
+        if (files != null && !files.isEmpty()) {
+            uploadAndSaveFiles(files, savedFAQ);
+        }
+    }
+
+    private void uploadAndSaveFiles(List<MultipartFile> files, FAQManagement faq) {
+        for (MultipartFile file : files) {
+            if (file.isEmpty()) {
+                continue;
+            }
+
+            try {
+                // 파일 타입 검증
+                String originalFilename = file.getOriginalFilename();
+                if (originalFilename == null || originalFilename.trim().isEmpty()) {
+                    log.warn("파일명이 없는 파일이 업로드 시도됨");
+                    continue;
+                }
+
+                // 파일 크기 검증 (100MB 제한)
+                if (file.getSize() > 100 * 1024 * 1024) {
+                    throw new BaseException(400, "파일 크기는 100MB를 초과할 수 없습니다: " + originalFilename);
+                }
+
+                // S3에 파일 업로드
+                String filePath = s3Service.uploadFile(file, "faq-files");
+
+                // 파일 확장자 추출
+                String fileType = originalFilename.substring(originalFilename.lastIndexOf(".") + 1).toLowerCase();
+
+                // FAQFile 엔티티 생성 및 저장
+                FAQFile faqFile = FAQFile.builder()
+                        .originalFileName(originalFilename)
+                        .storedFileName(extractFileNameFromPath(filePath))
+                        .filePath(filePath)
+                        .fileSize(file.getSize())
+                        .fileType(fileType)
+                        .faqManagement(faq)
+                        .build();
+
+                faqFileRepository.save(faqFile);
+
+                log.info("파일 업로드 완료: {} -> {}", originalFilename, filePath);
+
+            } catch (Exception e) {
+                log.error("파일 업로드 실패: {}", file.getOriginalFilename(), e);
+                throw new BaseException(500, "파일 업로드 중 오류가 발생했습니다: " + file.getOriginalFilename());
+            }
+        }
+    }
+
+    private String extractFileNameFromPath(String filePath) {
+        if (filePath == null)
+            return "";
+        int lastSlash = filePath.lastIndexOf("/");
+        return lastSlash >= 0 ? filePath.substring(lastSlash + 1) : filePath;
     }
 
     public FAQDetailResponse getFAQById(Long id) {

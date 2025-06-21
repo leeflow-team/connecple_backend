@@ -5,6 +5,9 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @Getter
 @NoArgsConstructor
@@ -22,4 +25,7 @@ public class FAQCreateRequest {
 
     @NotNull(message = "상태 설정은 필수입니다.")
     private Boolean isActive;
+
+    // 파일은 선택사항 (null 가능)
+    private List<MultipartFile> files;
 }
