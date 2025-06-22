@@ -88,6 +88,7 @@ public class FAQManagementService {
     }
 
     private void uploadAndSaveFiles(List<MultipartFile> files, FAQManagement faq) {
+
         for (MultipartFile file : files) {
             if (file.isEmpty()) {
                 continue;
@@ -153,12 +154,54 @@ public class FAQManagementService {
     }
 
     @Transactional
-    public void updateFAQ(Long id, FAQUpdateRequest request) {
+    public void updateFAQ(Long id, String category, String question, String answer, Boolean isActive,
+            List<MultipartFile> files) {
+
+        // FAQ 엔티티 조회 및 업데이트
         FAQManagement faq = faqManagementRepository.findByIdAndIsDeletedFalse(id)
                 .orElseThrow(() -> new BaseException(404, "해당 FAQ가 존재하지 않습니다."));
 
-        faq.update(request.getCategory(), request.getQuestion(), request.getAnswer(), request.getIsActive());
+        // 입력 값 검증
+        if (category == null || category.trim().isEmpty()) {
+            throw new BaseException(400, "카테고리 설정은 필수입니다.");
+        }
+        if (question == null || question.trim().isEmpty()) {
+            throw new BaseException(400, "질문 작성은 필수입니다.");
+        }
+        if (answer == null || answer.trim().isEmpty()) {
+            throw new BaseException(400, "답변 작성은 필수입니다.");
+        }
+        if (isActive == null) {
+            throw new BaseException(400, "상태 설정은 필수입니다.");
+        }
+
+        faq.update(category.trim(), question.trim(), answer.trim(), isActive);
         faqManagementRepository.save(faq);
+
+        // 파일 전체 교체
+        replaceAllFiles(id, files, faq);
+    }
+
+    private void replaceAllFiles(Long faqId, List<MultipartFile> newFiles, FAQManagement faq) {
+
+        // 1. 기존 파일들 모두 삭제 (S3 + DB)
+        List<FAQFile> existingFiles = faqFileRepository.findByFaqManagementId(faqId);
+
+        for (FAQFile existingFile : existingFiles) {
+            // S3에서 파일 삭제
+            s3Service.deleteFile(existingFile.getFilePath());
+        }
+
+        // DB에서 기존 파일 레코드들 모두 삭제
+        faqFileRepository.deleteByFaqManagementId(faqId);
+
+        // 2. 새로운 파일들 업로드 및 저장
+        if (newFiles != null && !newFiles.isEmpty()) {
+            uploadAndSaveFiles(newFiles, faq);
+            log.info("새로운 파일 업로드 완료");
+        } else {
+            log.info("새로운 파일이 없음 - newFiles: {}", newFiles);
+        }
     }
 
     @Description("FAQ 삭제 - 이미 삭제된 항목은 또 삭제되지 않음")
