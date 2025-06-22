@@ -204,22 +204,44 @@ public class FAQManagementService {
         }
     }
 
-    @Description("FAQ 삭제 - 이미 삭제된 항목은 또 삭제되지 않음")
+    @Description("FAQ 삭제 - FAQ는 soft delete, 파일은 실제 삭제")
     @Transactional
     public void deleteFAQ(Long id) {
         FAQManagement faq = faqManagementRepository.findByIdAndIsDeletedFalse(id)
                 .orElseThrow(() -> new BaseException(400, "해당 FAQ를 찾을 수 없습니다."));
 
-        // FAQ에 연결된 파일들을 S3에서 실제 삭제
+        // FAQ에 연결된 파일들을 실제 삭제 (S3 + DB)
         List<FAQFile> files = faqFileRepository.findByFaqManagementId(id);
+
+        log.info("FAQ {} 삭제 시작 - 연결된 파일 수: {}", id, files.size());
+
+        // S3에서 파일들 실제 삭제
+        int deletedFileCount = 0;
+        int failedFileCount = 0;
+
         for (FAQFile file : files) {
-            s3Service.deleteFile(file.getFilePath());
+            try {
+                s3Service.deleteFile(file.getFilePath());
+                deletedFileCount++;
+                log.info("S3 파일 삭제 성공: {}", file.getFilePath());
+            } catch (Exception e) {
+                failedFileCount++;
+                log.error("S3 파일 삭제 실패: {} - 오류: {}", file.getFilePath(), e.getMessage());
+                // S3 삭제 실패해도 계속 진행 (DB 정리를 위해)
+            }
+        }
+
+        // DB에서 FAQFile 레코드들 모두 삭제
+        if (!files.isEmpty()) {
+            faqFileRepository.deleteByFaqManagementId(id);
+            log.info("DB에서 FAQFile 레코드들 삭제 완료");
         }
 
         // FAQ soft delete
         faq.deleteFAQ();
-
         faqManagementRepository.save(faq);
+
+        log.info("FAQ {} 삭제 완료 - S3 파일 삭제 성공: {}, 실패: {}", id, deletedFileCount, failedFileCount);
     }
 
     @Transactional(readOnly = true)
