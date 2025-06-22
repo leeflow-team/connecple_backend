@@ -6,16 +6,19 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
-@Table(name = "notice_management", indexes = {@Index(name = "idx_notice_category", columnList = "category")})
+@Table(name = "notice_management", indexes = { @Index(name = "idx_notice_category", columnList = "category") })
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
 @Builder
 public class NoticeManagement extends BaseTimeEntity {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
@@ -35,6 +38,9 @@ public class NoticeManagement extends BaseTimeEntity {
 
     private LocalDateTime deletedAt;
 
+    @OneToMany(mappedBy = "noticeManagement", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<NoticeFile> files = new ArrayList<>();
+
     @Builder
     public NoticeManagement(String category, String title, String content, Boolean isActive) {
         this.category = category;
@@ -44,14 +50,14 @@ public class NoticeManagement extends BaseTimeEntity {
         this.isDeleted = false;
     }
 
-    public void updateNoticeManagement(NoticeCreateRequest request){
+    public void updateNoticeManagement(NoticeCreateRequest request) {
         this.category = request.getCategory();
         this.title = request.getTitle();
         this.content = request.getContent();
         this.isActive = request.getIsActive();
     }
 
-    public void deleteNoticeManagement(){
+    public void deleteNoticeManagement() {
         this.isDeleted = true;
         this.deletedAt = LocalDateTime.now();
     }
