@@ -58,10 +58,11 @@ public class FAQManagementController {
             @RequestParam("question") String question,
             @RequestParam("answer") String answer,
             @RequestParam("isActive") Boolean isActive,
+            @RequestParam(value = "deleteFileIds", required = false) List<Long> deleteFileIds,
             @RequestParam(value = "files", required = false) List<MultipartFile> files) {
         checkAdmin(session);
 
-        faqManagementService.updateFAQ(faqId, category, question, answer, isActive, files);
+        faqManagementService.updateFAQ(faqId, category, question, answer, isActive, deleteFileIds, files);
         return ResponseEntity.ok(SuccessResponse.success());
     }
 

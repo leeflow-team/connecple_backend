@@ -35,25 +35,6 @@ public class FAQManagementService {
     private final S3Service s3Service;
 
     @Transactional
-    public void createFAQ(FAQCreateRequest request) {
-        // FAQ 엔티티 생성 및 저장
-        FAQManagement faq = FAQManagement.builder()
-                .category(request.getCategory())
-                .question(request.getQuestion())
-                .answer(request.getAnswer())
-                .isActive(request.getIsActive())
-                .isDeleted(false)
-                .build();
-
-        FAQManagement savedFAQ = faqManagementRepository.save(faq);
-
-        // 파일 업로드 및 저장
-        if (request.getFiles() != null && !request.getFiles().isEmpty()) {
-            uploadAndSaveFiles(request.getFiles(), savedFAQ);
-        }
-    }
-
-    @Transactional
     public void createFAQ(String category, String question, String answer, Boolean isActive,
             List<MultipartFile> files) {
         // 입력 값 검증
@@ -155,7 +136,7 @@ public class FAQManagementService {
 
     @Transactional
     public void updateFAQ(Long id, String category, String question, String answer, Boolean isActive,
-            List<MultipartFile> files) {
+            List<Long> deleteFileIds, List<MultipartFile> files) {
 
         // FAQ 엔티티 조회 및 업데이트
         FAQManagement faq = faqManagementRepository.findByIdAndIsDeletedFalse(id)
@@ -178,30 +159,48 @@ public class FAQManagementService {
         faq.update(category.trim(), question.trim(), answer.trim(), isActive);
         faqManagementRepository.save(faq);
 
-        // 파일 전체 교체
-        replaceAllFiles(id, files, faq);
+        // 선택적 파일 삭제 및 새 파일 추가
+        updateFilesSelectively(id, deleteFileIds, files, faq);
     }
 
-    private void replaceAllFiles(Long faqId, List<MultipartFile> newFiles, FAQManagement faq) {
+    private void updateFilesSelectively(Long faqId, List<Long> deleteFileIds, List<MultipartFile> newFiles,
+            FAQManagement faq) {
+        log.info("선택적 파일 업데이트 시작 - FAQ ID: {}, 삭제할 파일 ID: {}, 새 파일 개수: {}",
+                faqId, deleteFileIds, newFiles != null ? newFiles.size() : 0);
 
-        // 1. 기존 파일들 모두 삭제 (S3 + DB)
-        List<FAQFile> existingFiles = faqFileRepository.findByFaqManagementId(faqId);
+        // 1. 삭제할 파일들 처리
+        if (deleteFileIds != null && !deleteFileIds.isEmpty()) {
+            for (Long fileId : deleteFileIds) {
+                // 해당 파일이 이 FAQ의 파일인지 검증
+                FAQFile fileToDelete = faqFileRepository.findById(fileId)
+                        .orElseThrow(() -> new BaseException(404, "삭제하려는 파일을 찾을 수 없습니다. 파일 ID: " + fileId));
 
-        for (FAQFile existingFile : existingFiles) {
-            // S3에서 파일 삭제
-            s3Service.deleteFile(existingFile.getFilePath());
+                if (!fileToDelete.getFaqManagement().getId().equals(faqId)) {
+                    throw new BaseException(400, "해당 FAQ의 파일이 아닙니다. 파일 ID: " + fileId);
+                }
+
+                try {
+                    // S3에서 파일 삭제
+                    s3Service.deleteFile(fileToDelete.getFilePath());
+                    log.info("S3에서 파일 삭제 완료: {}", fileToDelete.getFilePath());
+                } catch (Exception e) {
+                    log.error("S3 파일 삭제 실패: {} - 오류: {}", fileToDelete.getFilePath(), e.getMessage());
+                    // S3 삭제 실패해도 DB에서는 제거 (데이터 일관성 유지)
+                }
+
+                // DB에서 파일 레코드 삭제
+                faqFileRepository.delete(fileToDelete);
+                log.info("DB에서 파일 레코드 삭제 완료 - 파일 ID: {}", fileId);
+            }
         }
-
-        // DB에서 기존 파일 레코드들 모두 삭제
-        faqFileRepository.deleteByFaqManagementId(faqId);
 
         // 2. 새로운 파일들 업로드 및 저장
         if (newFiles != null && !newFiles.isEmpty()) {
             uploadAndSaveFiles(newFiles, faq);
-            log.info("새로운 파일 업로드 완료");
-        } else {
-            log.info("새로운 파일이 없음 - newFiles: {}", newFiles);
+            log.info("새로운 파일들 업로드 완료 - 개수: {}", newFiles.size());
         }
+
+        log.info("선택적 파일 업데이트 완료");
     }
 
     @Description("FAQ 삭제 - FAQ는 soft delete, 파일은 실제 삭제")

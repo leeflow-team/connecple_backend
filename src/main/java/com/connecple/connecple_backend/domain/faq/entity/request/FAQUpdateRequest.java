@@ -26,6 +26,9 @@ public class FAQUpdateRequest {
     @NotNull(message = "활성화 여부는 필수입니다.")
     private Boolean isActive;
 
-    // 새로 업로드할 파일들 (기존 파일은 모두 삭제되고 이것들로 교체)
+    // 삭제할 파일들의 ID 목록
+    private List<Long> deleteFileIds;
+
+    // 새로 업로드할 파일들
     private List<MultipartFile> files;
 }
