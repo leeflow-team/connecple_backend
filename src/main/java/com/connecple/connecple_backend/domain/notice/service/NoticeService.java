@@ -276,22 +276,9 @@ public class NoticeService {
         (int) Math.ceil((double) total / pageable.getPageSize()));
   }
 
-  @Description("공지 수정, 삭제된 것은 수정 안됨")
-  @Transactional
-  public void updateNotice(Long id, NoticeCreateRequest request) {
-    updateNotice(id, request.getCategory(), request.getTitle(), request.getContent(),
-        request.getIsActive(), request.getFiles());
-  }
-
-  @Transactional
-  public void updateNotice(Long id, NoticeUpdateRequest request) {
-    updateNotice(id, request.getCategory(), request.getTitle(), request.getContent(),
-        request.getIsActive(), request.getFiles());
-  }
-
   @Transactional
   public void updateNotice(Long id, String category, String title, String content, Boolean isActive,
-      List<MultipartFile> files) {
+      List<Long> deleteFileIds, List<MultipartFile> files) {
     // Notice 엔티티 조회 및 업데이트
     NoticeManagement notice = noticeRepository.findByIdAndIsDeletedIsFalse(id)
         .orElseThrow(() -> new BaseException(404, "해당 공지사항을 찾을 수 없습니다"));
@@ -316,8 +303,8 @@ public class NoticeService {
     notice.updateNoticeManagement(updateRequest);
     noticeRepository.save(notice);
 
-    // 파일 전체 교체
-    replaceAllFiles(id, files, notice);
+    // 선택적 파일 삭제 및 새 파일 추가
+    updateFilesSelectively(id, deleteFileIds, files, notice);
   }
 
   private void replaceAllFiles(Long noticeId, List<MultipartFile> newFiles, NoticeManagement notice) {
@@ -339,6 +326,46 @@ public class NoticeService {
     } else {
       log.info("새로운 파일이 없음 - newFiles: {}", newFiles);
     }
+  }
+
+  private void updateFilesSelectively(Long noticeId, List<Long> deleteFileIds, List<MultipartFile> newFiles,
+      NoticeManagement notice) {
+    log.info("선택적 파일 업데이트 시작 - Notice ID: {}, 삭제할 파일 ID: {}, 새 파일 개수: {}",
+        noticeId, deleteFileIds, newFiles != null ? newFiles.size() : 0);
+
+    // 1. 삭제할 파일들 처리
+    if (deleteFileIds != null && !deleteFileIds.isEmpty()) {
+      for (Long fileId : deleteFileIds) {
+        // 해당 파일이 이 notice의 파일인지 검증
+        NoticeFile fileToDelete = noticeFileRepository.findById(fileId)
+            .orElseThrow(() -> new BaseException(404, "삭제하려는 파일을 찾을 수 없습니다. 파일 ID: " + fileId));
+
+        if (!fileToDelete.getNoticeManagement().getId().equals(noticeId)) {
+          throw new BaseException(400, "해당 공지사항의 파일이 아닙니다. 파일 ID: " + fileId);
+        }
+
+        try {
+          // S3에서 파일 삭제
+          s3Service.deleteFile(fileToDelete.getFilePath());
+          log.info("S3에서 파일 삭제 완료: {}", fileToDelete.getFilePath());
+        } catch (Exception e) {
+          log.error("S3 파일 삭제 실패: {} - 오류: {}", fileToDelete.getFilePath(), e.getMessage());
+          // S3 삭제 실패해도 DB에서는 제거 (데이터 일관성 유지)
+        }
+
+        // DB에서 파일 레코드 삭제
+        noticeFileRepository.delete(fileToDelete);
+        log.info("DB에서 파일 레코드 삭제 완료 - 파일 ID: {}", fileId);
+      }
+    }
+
+    // 2. 새로운 파일들 업로드 및 저장
+    if (newFiles != null && !newFiles.isEmpty()) {
+      uploadAndSaveFiles(newFiles, notice);
+      log.info("새로운 파일들 업로드 완료 - 개수: {}", newFiles.size());
+    }
+
+    log.info("선택적 파일 업데이트 완료");
   }
 
   @Description("공지 삭제 - Notice는 soft delete, 파일은 실제 삭제")

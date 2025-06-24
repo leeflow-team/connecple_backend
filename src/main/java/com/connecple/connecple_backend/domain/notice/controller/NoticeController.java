@@ -80,16 +80,6 @@ public class NoticeController {
     return ResponseEntity.ok().body(SuccessResponse.success(noticeService.readDetailNotice(id)));
   }
 
-  @Description("공지 수정 (JSON)")
-  @PatchMapping("/{id}")
-  public ResponseEntity<SuccessResponse<Void>> updateDetailNotice(HttpSession session,
-      @PathVariable("id") Long id,
-      @RequestBody @Valid NoticeCreateRequest request) {
-    checkAdmin(session);
-    noticeService.updateNotice(id, request);
-    return ResponseEntity.ok().body(SuccessResponse.success());
-  }
-
   @Description("공지 수정 (파일 업로드 포함)")
   @PatchMapping(value = "/{id}", consumes = { "multipart/form-data" })
   public ResponseEntity<SuccessResponse<Void>> updateNoticeWithFiles(
@@ -99,10 +89,11 @@ public class NoticeController {
       @RequestParam("title") String title,
       @RequestParam("content") String content,
       @RequestParam("isActive") Boolean isActive,
+      @RequestParam(value = "deleteFileIds", required = false) List<Long> deleteFileIds,
       @RequestParam(value = "files", required = false) List<MultipartFile> files) {
     checkAdmin(session);
 
-    noticeService.updateNotice(id, category, title, content, isActive, files);
+    noticeService.updateNotice(id, category, title, content, isActive, deleteFileIds, files);
     return ResponseEntity.ok(SuccessResponse.success());
   }
 
