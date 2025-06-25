@@ -5,16 +5,19 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
-@Table(name = "faq_management", indexes = {@Index(name = "idx_faq_category", columnList = "category")})
+@Table(name = "faq_management", indexes = { @Index(name = "idx_faq_category", columnList = "category") })
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
 @Builder
 public class FAQManagement extends BaseTimeEntity {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
@@ -33,6 +36,9 @@ public class FAQManagement extends BaseTimeEntity {
     private Boolean isDeleted;
 
     private LocalDateTime deletedAt;
+
+    @OneToMany(mappedBy = "faqManagement", cascade = { CascadeType.PERSIST, CascadeType.MERGE }, fetch = FetchType.LAZY)
+    private List<FAQFile> files = new ArrayList<>();
 
     @Builder
     public FAQManagement(String category, String question, String answer, Boolean isActive) {

@@ -14,6 +14,10 @@ spring:
       hibernate:
         format_sql: true
 
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
 
 logging:
   level:
@@ -23,3 +27,10 @@ logging:
 admin:
   id: admin
   password: 1234
+
+aws:
+  s3:
+    bucket-name: ${BUCKET-NAME}
+    access-key: ${BUCKET-ACCESS-KEY}
+    secret-key: ${BUCKET-SECRET-KEY}
+    region: ${BUCKET-REGION}

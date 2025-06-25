@@ -12,4 +12,5 @@ public class FAQAllResponse {
     private String question;
     private Boolean isActive;
     private LocalDateTime createdAt;
+    private Integer fileCount;
 }
