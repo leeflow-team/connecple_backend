@@ -31,16 +31,6 @@ public class MainIntroImageController {
         return ResponseEntity.ok(mainIntroImageService.getMainIntroImageList());
     }
 
-    @PostMapping("/main-intro-images")
-    public ResponseEntity<String> createMainIntroImage(HttpSession session,
-            @RequestBody MainIntroImageCreateRequest request) {
-        checkAdmin(session);
-
-        Long dataId = mainIntroImageService.createMainIntroImage(request);
-        URI location = URI.create("/main-intro-images/" + dataId);
-        return ResponseEntity.created(location).build();
-    }
-
     @PostMapping("/main-intro-images/reset")
     public ResponseEntity<SuccessResponse<String>> resetMainIntroImages(
             HttpSession session,
@@ -51,7 +41,7 @@ public class MainIntroImageController {
 
         // DTO 생성
         MainIntroImageBulkSaveRequest request = new MainIntroImageBulkSaveRequest(images, titles, companies);
-        
+
         mainIntroImageService.resetMainIntroImages(request);
         return ResponseEntity.ok(new SuccessResponse<>("Main intro images have been successfully reset", "success"));
     }
