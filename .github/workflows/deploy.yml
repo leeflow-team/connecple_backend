@@ -46,8 +46,7 @@ jobs:
 
       - name: Upload jar to EC2
         run: |
-          scp -i key.pem -o StrictHostKeyChecking=no build/libs/*.jar ec2-user@${{ secrets.EC2_HOST }}:/home/ec2-user/${{ env.JAR_NAME }}
-
+          scp -i key.pem -o StrictHostKeyChecking=no build/libs/connecple_backend-0.0.1-SNAPSHOT.jar ec2-user@${{ secrets.EC2_HOST }}:/home/ec2-user/${{ env.JAR_NAME }}
       - name: Deploy and Restart App on EC2
         run: |
           ssh -i key.pem -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_HOST }} << 'EOF'
