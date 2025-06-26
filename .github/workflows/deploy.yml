@@ -26,10 +26,10 @@ jobs:
         run: |
           mkdir -p src/main/resources/properties
           cat <<EOT > src/main/resources/properties/env.properties
-          BUCKET-ACCESS-KEY=${{ secrets.BUCKET_ACCESS_KEY }}
-          BUCKET-SECRET-KEY=${{ secrets.BUCKET_SECRET_KEY }}
-          BUCKET-REGION=${{ secrets.BUCKET_REGION }}
-          BUCKET-NAME=${{ secrets.BUCKET_NAME }}
+          BUCKET_ACCESS_KEY=${{ secrets.BUCKET_ACCESS_KEY }}
+          BUCKET_SECRET_KEY=${{ secrets.BUCKET_SECRET_KEY }}
+          BUCKET_REGION=${{ secrets.BUCKET_REGION }}
+          BUCKET_NAME=${{ secrets.BUCKET_NAME }}
           
           CONNECPLE_DB_URL=${{ secrets.CONNECPLE_DB_URL }}
           CONNECPLE_DB_USERNAME=${{ secrets.CONNECPLE_DB_USERNAME }}
