@@ -30,7 +30,7 @@ admin:
 
 aws:
   s3:
-    bucket-name: ${BUCKET-NAME}
-    access-key: ${BUCKET-ACCESS-KEY}
-    secret-key: ${BUCKET-SECRET-KEY}
-    region: ${BUCKET-REGION}
+    bucket-name: ${BUCKET_NAME}
+    access-key: ${BUCKET_ACCESS_KEY}
+    secret-key: ${BUCKET_SECRET_KEY}
+    region: ${BUCKET_REGION}
