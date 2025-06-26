@@ -4,11 +4,14 @@ import com.connecple.connecple_backend.domain.main.intro.entity.dto.MainIntroIma
 import com.connecple.connecple_backend.domain.main.intro.service.MainIntroImageService;
 import com.connecple.connecple_backend.domain.main.intro.entity.request.MainIntroImageCreateRequest;
 import com.connecple.connecple_backend.domain.main.intro.entity.request.MainIntroImageUpdateRequest;
+import com.connecple.connecple_backend.domain.main.intro.entity.request.MainIntroImageBulkSaveRequest;
+import com.connecple.connecple_backend.global.dto.SuccessResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.net.URI;
 import java.util.List;
@@ -28,27 +31,26 @@ public class MainIntroImageController {
         return ResponseEntity.ok(mainIntroImageService.getMainIntroImageList());
     }
 
-    @PostMapping("/main-intro-images")
-    public ResponseEntity<String> createMainIntroImage(HttpSession session, @RequestBody MainIntroImageCreateRequest request) {
+    @PostMapping("/main-intro-images/reset")
+    public ResponseEntity<SuccessResponse<String>> resetMainIntroImages(
+            HttpSession session,
+            @RequestParam("images") List<MultipartFile> images,
+            @RequestParam("titles") List<String> titles,
+            @RequestParam("companies") List<String> companies) {
         checkAdmin(session);
 
-        Long dataId = mainIntroImageService.createMainIntroImage(request);
-        URI location = URI.create("/main-intro-images/" + dataId);
-        return ResponseEntity.created(location).build();
+        // DTO 생성
+        MainIntroImageBulkSaveRequest request = new MainIntroImageBulkSaveRequest(images, titles, companies);
+
+        mainIntroImageService.resetMainIntroImages(request);
+        return ResponseEntity.ok(new SuccessResponse<>("Main intro images have been successfully reset", "success"));
     }
 
-    @PatchMapping("/main-intro-images/{id}")
-    public ResponseEntity<MainIntroImageDto> updateMainIntroImage(HttpSession session, @PathVariable Long id, @RequestBody MainIntroImageUpdateRequest request) {
-        checkAdmin(session);
-
-        return ResponseEntity.ok(mainIntroImageService.updateMainIntroImage(request, id));
-    }
-
-    @DeleteMapping("/main-intro-images/{id}")
-    public ResponseEntity<Void> deleteMainIntroImage(HttpSession session, @PathVariable Long id) {
-        checkAdmin(session);
-
-        mainIntroImageService.deleteMainIntroImage(id);
-        return ResponseEntity.noContent().build();
-    }
+//    @DeleteMapping("/main-intro-images/{id}")
+//    public ResponseEntity<Void> deleteMainIntroImage(HttpSession session, @PathVariable Long id) {
+//        checkAdmin(session);
+//
+//        mainIntroImageService.deleteMainIntroImage(id);
+//        return ResponseEntity.noContent().build();
+//    }
 }

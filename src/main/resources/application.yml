@@ -1,16 +1,23 @@
 spring:
+  application:
+    name: connecple_backend
   datasource:
-    url: jdbc:h2:tcp://localhost/~/connecple
-    username: sa
-    password:
-    driver-class-name: org.h2.Driver
+    url: ${CONNECPLE_DB_URL}
+    username: ${CONNECPLE_DB_USERNAME}
+    password: ${CONNECPLE_DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     properties:
       hibernate:
         format_sql: true
+
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
 
 logging:
   level:
@@ -20,3 +27,10 @@ logging:
 admin:
   id: admin
   password: 1234
+
+aws:
+  s3:
+    bucket-name: ${BUCKET_NAME}
+    access-key: ${BUCKET_ACCESS_KEY}
+    secret-key: ${BUCKET_SECRET_KEY}
+    region: ${BUCKET_REGION}
