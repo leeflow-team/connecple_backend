@@ -29,21 +29,21 @@ public class MainIntroImageService {
         return mainIntroImageRepository.getMainIntroImages();
     }
 
-    @Transactional
-    public void deleteMainIntroImage(Long id) {
-        try {
-            MainIntroImage image = mainIntroImageRepository.findById(id)
-                    .orElseThrow(() -> new BaseException(404, "The main intro image does not exist"));
-
-            // S3에서 파일 삭제
-            s3Service.deleteFile(image.getImagePath());
-
-            // DB에서 삭제
-            mainIntroImageRepository.deleteById(id);
-        } catch (Exception e) {
-            throw new BaseException(404, "The main intro image does not exist");
-        }
-    }
+//    @Transactional
+//    public void deleteMainIntroImage(Long id) {
+//        try {
+//            MainIntroImage image = mainIntroImageRepository.findById(id)
+//                    .orElseThrow(() -> new BaseException(404, "The main intro image does not exist"));
+//
+//            // S3에서 파일 삭제
+//            s3Service.deleteFile(image.getImagePath());
+//
+//            // DB에서 삭제
+//            mainIntroImageRepository.deleteById(id);
+//        } catch (Exception e) {
+//            throw new BaseException(404, "The main intro image does not exist");
+//        }
+//    }
 
     @Transactional
     public void resetMainIntroImages(MainIntroImageBulkSaveRequest request) {
