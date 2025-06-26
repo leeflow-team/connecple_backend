@@ -1,8 +1,8 @@
 spring:
-  application:
-    name: connecple_backend
   config:
     import: classpath:/properties/env.properties
+  application:
+    name: connecple_backend
   datasource:
     url: ${CONNECPLE_DB_URL}
     username: ${CONNECPLE_DB_USERNAME}
