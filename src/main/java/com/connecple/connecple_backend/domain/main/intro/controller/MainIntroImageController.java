@@ -46,11 +46,22 @@ public class MainIntroImageController {
         return ResponseEntity.ok(new SuccessResponse<>("Main intro images have been successfully reset", "success"));
     }
 
-//    @DeleteMapping("/main-intro-images/{id}")
-//    public ResponseEntity<Void> deleteMainIntroImage(HttpSession session, @PathVariable Long id) {
-//        checkAdmin(session);
-//
-//        mainIntroImageService.deleteMainIntroImage(id);
-//        return ResponseEntity.noContent().build();
-//    }
+    // @PatchMapping("/main-intro-images/{id}")
+    // public ResponseEntity<MainIntroImageDto> updateMainIntroImage(HttpSession
+    // session, @PathVariable Long id,
+    // @RequestBody MainIntroImageUpdateRequest request) {
+    // checkAdmin(session);
+
+    // return ResponseEntity.ok(mainIntroImageService.updateMainIntroImage(request,
+    // id));
+    // }
+
+    // @DeleteMapping("/main-intro-images/{id}")
+    // public ResponseEntity<Void> deleteMainIntroImage(HttpSession session,
+    // @PathVariable Long id) {
+    // checkAdmin(session);
+
+    // mainIntroImageService.deleteMainIntroImage(id);
+    // return ResponseEntity.noContent().build();
+    // }
 }
