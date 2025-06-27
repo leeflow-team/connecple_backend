@@ -3,6 +3,7 @@ package com.connecple.connecple_backend.client.controller;
 import static com.connecple.connecple_backend.global.common.LoginChecker.checkAdmin;
 
 import com.connecple.connecple_backend.client.dto.ClientFAQDetailResponse;
+import com.connecple.connecple_backend.client.dto.ClientFAQListResponse;
 import com.connecple.connecple_backend.client.dto.HomeResponse;
 import com.connecple.connecple_backend.client.service.ClientService;
 import com.connecple.connecple_backend.domain.connecple.intro.entity.dto.ConnecpleHistoryResponse;
@@ -18,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -55,6 +57,27 @@ public class ClientController {
     @GetMapping("/faqs/{faqId}")
     public ResponseEntity<ClientFAQDetailResponse> getFAQDetail(@PathVariable Long faqId) {
         ClientFAQDetailResponse response = faqManagementService.getClientFAQById(faqId);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/faqs")
+    public ResponseEntity<ClientFAQListResponse> readAllFAQs(
+            @RequestParam(name = "category", required = false) List<String> categories,
+            @RequestParam(name = "sortBy", defaultValue = "createdAt") String sortBy,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size) {
+        ClientFAQListResponse response = faqManagementService.readAllClientFAQ(categories, page, size, sortBy);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/faqs/search")
+    public ResponseEntity<ClientFAQListResponse> searchFAQ(
+            @RequestParam("keyword") String keyword,
+            @RequestParam(name = "category", required = false) List<String> categories,
+            @RequestParam(name = "sortBy", required = false, defaultValue = "createdAt") String sortBy,
+            @RequestParam(name = "page", required = false, defaultValue = "0") int page,
+            @RequestParam(name = "size", required = false, defaultValue = "10") int size) {
+        ClientFAQListResponse response = faqManagementService.searchClientFAQ(keyword, categories, page, size, sortBy);
         return ResponseEntity.ok(response);
     }
 }

@@ -1,6 +1,8 @@
 package com.connecple.connecple_backend.domain.faq.service;
 
+import com.connecple.connecple_backend.client.dto.ClientFAQAllResponse;
 import com.connecple.connecple_backend.client.dto.ClientFAQDetailResponse;
+import com.connecple.connecple_backend.client.dto.ClientFAQListResponse;
 import com.connecple.connecple_backend.domain.faq.entity.FAQManagement;
 import com.connecple.connecple_backend.domain.faq.entity.FAQFile;
 import com.connecple.connecple_backend.domain.faq.entity.QFAQManagement;
@@ -340,6 +342,99 @@ public class FAQManagementService {
                 .toList();
 
         return new FAQListResponse(
+                responseList,
+                faqPage.getTotalElements(),
+                faqPage.getNumber(),
+                faqPage.getSize(),
+                faqPage.getTotalPages());
+    }
+
+    // 클라이언트용: 활성화된 FAQ 전체 조회 (카테고리 필터링 포함)
+    @Transactional(readOnly = true)
+    public ClientFAQListResponse readAllClientFAQ(List<String> categories, int page, int size, String sortBy) {
+        int pageSize = switch (size) {
+            case 30 -> 30;
+            case 50 -> 50;
+            default -> 10;
+        };
+
+        Sort sort = Sort.by("createdAt".equals(sortBy) ? "createdAt" : "updatedAt").descending();
+        Pageable pageable = PageRequest.of(page, pageSize, sort);
+
+        Page<FAQManagement> pageResult;
+
+        if (categories == null || categories.isEmpty()) {
+            pageResult = faqManagementRepository.findAllByIsActiveTrueAndIsDeletedFalse(pageable);
+        } else {
+            pageResult = faqManagementRepository.findAllByCategoryInAndIsActiveTrueAndIsDeletedFalse(categories,
+                    pageable);
+        }
+
+        List<ClientFAQAllResponse> resultList = pageResult.getContent().stream()
+                .map(faq -> {
+                    int fileCount = faqFileRepository.findByFaqManagementId(faq.getId()).size();
+                    return new ClientFAQAllResponse(
+                            faq.getId(),
+                            faq.getCategory(),
+                            faq.getQuestion(),
+                            faq.getCreatedAt(),
+                            fileCount);
+                })
+                .toList();
+
+        return new ClientFAQListResponse(
+                resultList,
+                pageResult.getTotalElements(),
+                pageResult.getNumber(),
+                pageResult.getSize(),
+                pageResult.getTotalPages());
+    }
+
+    // 클라이언트용: 활성화된 FAQ 키워드 기반 검색
+    @Transactional(readOnly = true)
+    public ClientFAQListResponse searchClientFAQ(String keyword, List<String> categories, int page, int size,
+            String sortBy) {
+        int pageSize = switch (size) {
+            case 30 -> 30;
+            case 50 -> 50;
+            default -> 10;
+        };
+
+        Sort sort = Sort.by("createdAt".equals(sortBy) ? "createdAt" : "updatedAt").descending();
+        Pageable pageable = PageRequest.of(page, pageSize, sort);
+
+        QFAQManagement faq = QFAQManagement.fAQManagement;
+        BooleanBuilder builder = new BooleanBuilder();
+        builder.and(faq.isDeleted.isFalse());
+        builder.and(faq.isActive.isTrue()); // 클라이언트용: 활성화된 FAQ만
+
+        // 카테고리 필터링
+        if (categories != null && !categories.isEmpty()) {
+            builder.and(faq.category.in(categories));
+        }
+
+        // 키워드는 question, answer에서만 검색
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            builder.and(
+                    faq.question.containsIgnoreCase(keyword)
+                            .or(faq.answer.containsIgnoreCase(keyword)));
+        }
+
+        Page<FAQManagement> faqPage = faqManagementRepository.findAllWithQueryDsl(builder, pageable, sortBy);
+
+        List<ClientFAQAllResponse> responseList = faqPage.getContent().stream()
+                .map(f -> {
+                    int fileCount = faqFileRepository.findByFaqManagementId(f.getId()).size();
+                    return new ClientFAQAllResponse(
+                            f.getId(),
+                            f.getCategory(),
+                            f.getQuestion(),
+                            f.getCreatedAt(),
+                            fileCount);
+                })
+                .toList();
+
+        return new ClientFAQListResponse(
                 responseList,
                 faqPage.getTotalElements(),
                 faqPage.getNumber(),

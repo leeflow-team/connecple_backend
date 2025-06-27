@@ -21,4 +21,9 @@ public interface FAQManagementRepository extends JpaRepository<FAQManagement, Lo
 
     Optional<FAQManagement> findByIdAndIsActiveTrueAndIsDeletedFalse(Long id);
 
+    // 클라이언트용: 페이징 지원
+    Page<FAQManagement> findAllByIsActiveTrueAndIsDeletedFalse(Pageable pageable);
+
+    Page<FAQManagement> findAllByCategoryInAndIsActiveTrueAndIsDeletedFalse(List<String> categories, Pageable pageable);
+
 }
