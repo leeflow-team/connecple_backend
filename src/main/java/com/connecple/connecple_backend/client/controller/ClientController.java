@@ -4,6 +4,7 @@ import static com.connecple.connecple_backend.global.common.LoginChecker.checkAd
 
 import com.connecple.connecple_backend.client.dto.ClientFAQDetailResponse;
 import com.connecple.connecple_backend.client.dto.ClientFAQListResponse;
+import com.connecple.connecple_backend.client.dto.ClientNoticeDetailResponse;
 import com.connecple.connecple_backend.client.dto.HomeResponse;
 import com.connecple.connecple_backend.client.service.ClientService;
 import com.connecple.connecple_backend.domain.connecple.intro.entity.dto.ConnecpleHistoryResponse;
@@ -11,6 +12,7 @@ import com.connecple.connecple_backend.domain.connecple.intro.service.ConnecpleI
 import com.connecple.connecple_backend.domain.faq.service.FAQManagementService;
 import com.connecple.connecple_backend.domain.link.entity.dto.MainLinkResponseDto;
 import com.connecple.connecple_backend.domain.link.service.MainLinkManagementService;
+import com.connecple.connecple_backend.domain.notice.service.NoticeService;
 import com.connecple.connecple_backend.global.dto.SuccessResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +35,7 @@ public class ClientController {
     private final MainLinkManagementService mainLinkManagementService;
     private final ConnecpleIntroManagementService connecpleIntroManagementService;
     private final FAQManagementService faqManagementService;
+    private final NoticeService noticeService;
 
     @GetMapping("/home")
     public ResponseEntity<HomeResponse> getHomeData() {
@@ -78,6 +81,12 @@ public class ClientController {
             @RequestParam(name = "page", required = false, defaultValue = "0") int page,
             @RequestParam(name = "size", required = false, defaultValue = "10") int size) {
         ClientFAQListResponse response = faqManagementService.searchClientFAQ(keyword, categories, page, size, sortBy);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/notices/{noticeId}")
+    public ResponseEntity<ClientNoticeDetailResponse> getNoticeDetail(@PathVariable Long noticeId) {
+        ClientNoticeDetailResponse response = noticeService.readClientDetailNotice(noticeId);
         return ResponseEntity.ok(response);
     }
 }

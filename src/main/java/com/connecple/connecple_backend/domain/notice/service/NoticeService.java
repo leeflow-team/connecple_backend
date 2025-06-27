@@ -1,5 +1,6 @@
 package com.connecple.connecple_backend.domain.notice.service;
 
+import com.connecple.connecple_backend.client.dto.ClientNoticeDetailResponse;
 import com.connecple.connecple_backend.domain.notice.dto.req.NoticeCreateRequest;
 import com.connecple.connecple_backend.domain.notice.dto.req.NoticeUpdateRequest;
 import com.connecple.connecple_backend.domain.notice.dto.res.NoticeAllResponse;
@@ -221,6 +222,21 @@ public class NoticeService {
     noticeManagement.getFiles().addAll(files);
 
     return NoticeDetailResponse.fromEntity(noticeManagement);
+  }
+
+  // 클라이언트용: 활성화된 공지사항만 조회
+  @Description("클라이언트용 공지 상세 조회 (활성화되고 삭제되지 않은 것만)")
+  @Transactional(readOnly = true)
+  public ClientNoticeDetailResponse readClientDetailNotice(Long id) {
+    NoticeManagement noticeManagement = noticeRepository.findByIdAndIsActiveTrueAndIsDeletedFalse(id)
+        .orElseThrow(() -> new BaseException(404, "해당 공지사항을 찾을 수 없습니다"));
+
+    // 파일들을 명시적으로 로딩 (LAZY 로딩 해결)
+    List<NoticeFile> files = noticeFileRepository.findByNoticeManagementId(id);
+    noticeManagement.getFiles().clear();
+    noticeManagement.getFiles().addAll(files);
+
+    return ClientNoticeDetailResponse.fromEntity(noticeManagement);
   }
 
   @Description("제목, 내용 기반 검색 + 카테고리 필터링")
