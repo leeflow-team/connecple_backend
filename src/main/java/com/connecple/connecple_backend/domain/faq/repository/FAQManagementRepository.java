@@ -11,7 +11,14 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface FAQManagementRepository extends JpaRepository<FAQManagement, Long>, FAQManagementRepositoryQdsl {
     Optional<FAQManagement> findByIdAndIsDeletedFalse(Long id);
+
     Page<FAQManagement> findAllByIsDeletedIsFalse(Pageable pageable);
+
     Page<FAQManagement> findAllByCategoryInAndIsDeletedFalse(List<String> categories, Pageable pageable);
+
+    // 클라이언트용: 활성화되고 삭제되지 않은 FAQ만 조회
+    List<FAQManagement> findAllByIsActiveTrueAndIsDeletedFalseOrderByCreatedAtDesc();
+
+    Optional<FAQManagement> findByIdAndIsActiveTrueAndIsDeletedFalse(Long id);
 
 }

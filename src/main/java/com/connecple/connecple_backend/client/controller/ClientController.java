@@ -2,21 +2,25 @@ package com.connecple.connecple_backend.client.controller;
 
 import static com.connecple.connecple_backend.global.common.LoginChecker.checkAdmin;
 
+import com.connecple.connecple_backend.client.dto.ClientFAQDetailResponse;
 import com.connecple.connecple_backend.client.dto.HomeResponse;
 import com.connecple.connecple_backend.client.service.ClientService;
 import com.connecple.connecple_backend.domain.connecple.intro.entity.dto.ConnecpleHistoryResponse;
 import com.connecple.connecple_backend.domain.connecple.intro.service.ConnecpleIntroManagementService;
+import com.connecple.connecple_backend.domain.faq.service.FAQManagementService;
 import com.connecple.connecple_backend.domain.link.entity.dto.MainLinkResponseDto;
 import com.connecple.connecple_backend.domain.link.service.MainLinkManagementService;
 import com.connecple.connecple_backend.global.dto.SuccessResponse;
 import jakarta.servlet.http.HttpSession;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/client")
@@ -26,6 +30,7 @@ public class ClientController {
     private final ClientService clientService;
     private final MainLinkManagementService mainLinkManagementService;
     private final ConnecpleIntroManagementService connecpleIntroManagementService;
+    private final FAQManagementService faqManagementService;
 
     @GetMapping("/home")
     public ResponseEntity<HomeResponse> getHomeData() {
@@ -44,6 +49,12 @@ public class ClientController {
     @GetMapping("/history")
     public ResponseEntity<List<ConnecpleHistoryResponse>> getAllIntroHistories() {
         List<ConnecpleHistoryResponse> response = connecpleIntroManagementService.getAllIntros();
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/faqs/{faqId}")
+    public ResponseEntity<ClientFAQDetailResponse> getFAQDetail(@PathVariable Long faqId) {
+        ClientFAQDetailResponse response = faqManagementService.getClientFAQById(faqId);
         return ResponseEntity.ok(response);
     }
 }

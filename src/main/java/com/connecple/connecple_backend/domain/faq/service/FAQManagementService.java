@@ -1,5 +1,6 @@
 package com.connecple.connecple_backend.domain.faq.service;
 
+import com.connecple.connecple_backend.client.dto.ClientFAQDetailResponse;
 import com.connecple.connecple_backend.domain.faq.entity.FAQManagement;
 import com.connecple.connecple_backend.domain.faq.entity.FAQFile;
 import com.connecple.connecple_backend.domain.faq.entity.QFAQManagement;
@@ -132,6 +133,19 @@ public class FAQManagementService {
         faq.getFiles().addAll(files);
 
         return FAQDetailResponse.fromEntity(faq);
+    }
+
+    // 클라이언트용: 활성화된 FAQ만 조회
+    public ClientFAQDetailResponse getClientFAQById(Long id) {
+        FAQManagement faq = faqManagementRepository.findByIdAndIsActiveTrueAndIsDeletedFalse(id)
+                .orElseThrow(() -> new BaseException(404, "해당 FAQ가 존재하지 않습니다."));
+
+        // 파일들을 명시적으로 로딩 (LAZY 로딩 해결)
+        List<FAQFile> files = faqFileRepository.findByFaqManagementId(id);
+        faq.getFiles().clear();
+        faq.getFiles().addAll(files);
+
+        return ClientFAQDetailResponse.fromEntity(faq);
     }
 
     @Transactional
