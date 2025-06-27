@@ -5,6 +5,7 @@ import static com.connecple.connecple_backend.global.common.LoginChecker.checkAd
 import com.connecple.connecple_backend.client.dto.ClientFAQDetailResponse;
 import com.connecple.connecple_backend.client.dto.ClientFAQListResponse;
 import com.connecple.connecple_backend.client.dto.ClientNoticeDetailResponse;
+import com.connecple.connecple_backend.client.dto.ClientNoticeListResponse;
 import com.connecple.connecple_backend.client.dto.HomeResponse;
 import com.connecple.connecple_backend.client.service.ClientService;
 import com.connecple.connecple_backend.domain.connecple.intro.entity.dto.ConnecpleHistoryResponse;
@@ -87,6 +88,27 @@ public class ClientController {
     @GetMapping("/notices/{noticeId}")
     public ResponseEntity<ClientNoticeDetailResponse> getNoticeDetail(@PathVariable Long noticeId) {
         ClientNoticeDetailResponse response = noticeService.readClientDetailNotice(noticeId);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/notices")
+    public ResponseEntity<ClientNoticeListResponse> readAllNotices(
+            @RequestParam(name = "category", required = false) List<String> categories,
+            @RequestParam(name = "sortBy", defaultValue = "createdAt") String sortBy,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size) {
+        ClientNoticeListResponse response = noticeService.readAllClientNotice(categories, page, size, sortBy);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/notices/search")
+    public ResponseEntity<ClientNoticeListResponse> searchNotice(
+            @RequestParam("keyword") String keyword,
+            @RequestParam(name = "category", required = false) List<String> categories,
+            @RequestParam(name = "sortBy", required = false, defaultValue = "createdAt") String sortBy,
+            @RequestParam(name = "page", required = false, defaultValue = "0") int page,
+            @RequestParam(name = "size", required = false, defaultValue = "10") int size) {
+        ClientNoticeListResponse response = noticeService.searchClientNotice(keyword, categories, page, size, sortBy);
         return ResponseEntity.ok(response);
     }
 }

@@ -1,6 +1,8 @@
 package com.connecple.connecple_backend.domain.notice.service;
 
+import com.connecple.connecple_backend.client.dto.ClientNoticeAllResponse;
 import com.connecple.connecple_backend.client.dto.ClientNoticeDetailResponse;
+import com.connecple.connecple_backend.client.dto.ClientNoticeListResponse;
 import com.connecple.connecple_backend.domain.notice.dto.req.NoticeCreateRequest;
 import com.connecple.connecple_backend.domain.notice.dto.req.NoticeUpdateRequest;
 import com.connecple.connecple_backend.domain.notice.dto.res.NoticeAllResponse;
@@ -422,6 +424,106 @@ public class NoticeService {
     noticeRepository.save(notice);
 
     log.info("Notice {} 삭제 완료 - S3 파일 삭제 성공: {}, 실패: {}", id, deletedFileCount, failedFileCount);
+  }
+
+  // 클라이언트용: 활성화된 공지사항 전체 조회 (카테고리 필터링 포함)
+  @Description("클라이언트용 공지사항 전체 조회 (활성화되고 삭제되지 않은 것만)")
+  @Transactional(readOnly = true)
+  public ClientNoticeListResponse readAllClientNotice(List<String> categories, int page, int size, String sortBy) {
+    int pageSize = switch (size) {
+      case 30 -> 30;
+      case 50 -> 50;
+      default -> 10;
+    };
+
+    Sort sort = Sort.by("createdAt".equals(sortBy) ? "createdAt" : "updatedAt").descending();
+    Pageable pageable = PageRequest.of(page, pageSize, sort);
+    Page<NoticeManagement> pageResult;
+
+    if (categories == null || categories.isEmpty()) {
+      pageResult = noticeRepository.findAllByIsActiveTrueAndIsDeletedFalse(pageable);
+    } else {
+      pageResult = noticeRepository.findAllByCategoryInAndIsActiveTrueAndIsDeletedFalse(categories, pageable);
+    }
+
+    List<ClientNoticeAllResponse> responseList = pageResult.getContent().stream()
+        .map(notice -> {
+          int fileCount = noticeFileRepository.findByNoticeManagementId(notice.getId()).size();
+          return new ClientNoticeAllResponse(
+              notice.getId(),
+              notice.getCategory(),
+              notice.getTitle(),
+              notice.getCreatedAt(),
+              fileCount);
+        })
+        .toList();
+
+    return new ClientNoticeListResponse(
+        responseList,
+        pageResult.getTotalElements(),
+        pageResult.getNumber(),
+        pageResult.getSize(),
+        pageResult.getTotalPages());
+  }
+
+  // 클라이언트용: 활성화된 공지사항 키워드 기반 검색
+  @Description("클라이언트용 공지사항 검색 (활성화되고 삭제되지 않은 것만)")
+  @Transactional(readOnly = true)
+  public ClientNoticeListResponse searchClientNotice(String keyword, List<String> categories, int page, int size,
+      String sortBy) {
+    int pageSize = switch (size) {
+      case 30 -> 30;
+      case 50 -> 50;
+      default -> 10;
+    };
+
+    Sort sort = Sort.by("createdAt".equals(sortBy) ? "createdAt" : "updatedAt").descending();
+    Pageable pageable = PageRequest.of(page, pageSize, sort);
+
+    QNoticeManagement q = QNoticeManagement.noticeManagement;
+    BooleanBuilder builder = new BooleanBuilder();
+    builder.and(q.isDeleted.isFalse());
+    builder.and(q.isActive.isTrue()); // 클라이언트용: 활성화된 공지사항만
+
+    // 카테고리 필터링
+    if (categories != null && !categories.isEmpty()) {
+      builder.and(q.category.in(categories));
+    }
+
+    // 제목 / 내용 키워드 검색
+    if (keyword != null && !keyword.trim().isEmpty()) {
+      builder.and(
+          q.title.containsIgnoreCase(keyword)
+              .or(q.content.containsIgnoreCase(keyword)));
+    }
+
+    List<NoticeManagement> notices = jpaQueryFactory.selectFrom(q)
+        .where(builder)
+        .orderBy("createdAt".equals(sortBy) ? q.createdAt.desc() : q.updatedAt.desc())
+        .offset(pageable.getOffset())
+        .limit(pageable.getPageSize())
+        .fetch();
+
+    long total = jpaQueryFactory.selectFrom(q).where(builder).fetchCount();
+
+    List<ClientNoticeAllResponse> responseList = notices.stream()
+        .map(n -> {
+          int fileCount = noticeFileRepository.findByNoticeManagementId(n.getId()).size();
+          return new ClientNoticeAllResponse(
+              n.getId(),
+              n.getCategory(),
+              n.getTitle(),
+              n.getCreatedAt(),
+              fileCount);
+        })
+        .toList();
+
+    return new ClientNoticeListResponse(
+        responseList,
+        total,
+        pageable.getPageNumber(),
+        pageable.getPageSize(),
+        (int) Math.ceil((double) total / pageable.getPageSize()));
   }
 
 }
