@@ -17,12 +17,9 @@ public class NewsRepositoryImpl implements NewsRepositoryQdsl {
 
     @Override
     public List<NewsDto> getNews() {
-        return queryFactory.select(
-                        Projections.constructor(NewsDto.class,
-                                news
-                        ))
+        return queryFactory.select(Projections.constructor(NewsDto.class,news))
                 .from(news)
-                .orderBy(news.sortOrder.desc())
+                .orderBy(news.sortOrder.asc())
                 .fetch();
     }
 

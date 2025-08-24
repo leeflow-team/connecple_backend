@@ -28,7 +28,6 @@ public class NewsService {
     }
 
     @Transactional
-
     public void resetNewsInfo(NewsBulkSaveRequest request) {
         // 입력 데이터 검증
         List<MultipartFile> images = request.getImages();
@@ -40,8 +39,8 @@ public class NewsService {
             throw new BaseException(400, "이미지, 제목, 내용 목록은 필수입니다");
         }
 
-        if (images.size() != titles.size() || images.size() != centents.size()) {
-            throw new BaseException(400, "이미지, 제목, 회사 목록의 크기가 일치해야 합니다");
+        if (images.size() != titles.size() || images.size() != centents.size() || images.size() != newsUrlList.size()) {
+            throw new BaseException(400, "이미지, 제목, 내용, 뉴스 링크의 크기가 일치해야 합니다");
         }
 
         if (images.size() > 3) {
