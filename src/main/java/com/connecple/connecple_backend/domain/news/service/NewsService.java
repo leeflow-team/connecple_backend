@@ -1,6 +1,5 @@
 package com.connecple.connecple_backend.domain.news.service;
 
-import com.connecple.connecple_backend.domain.main.intro.entity.MainIntroImage;
 import com.connecple.connecple_backend.domain.news.dto.NewsDto;
 import com.connecple.connecple_backend.domain.news.entity.News;
 import com.connecple.connecple_backend.domain.news.entity.request.NewsBulkSaveRequest;
@@ -21,8 +20,8 @@ import java.util.List;
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 @Transactional(readOnly = true)
 public class NewsService {
-    private NewsRepository newsRepository;
-    private S3Service s3Service;
+    private final NewsRepository newsRepository;
+    private final S3Service s3Service;
 
     public List<NewsDto> getNewsList() {
         return newsRepository.getNews();

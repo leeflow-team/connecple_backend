@@ -3,7 +3,6 @@ package com.connecple.connecple_backend.domain.news.controller;
 import com.connecple.connecple_backend.domain.news.dto.NewsDto;
 import com.connecple.connecple_backend.domain.news.entity.request.NewsBulkSaveRequest;
 import com.connecple.connecple_backend.domain.news.service.NewsService;
-import com.connecple.connecple_backend.global.common.LoginChecker;
 import com.connecple.connecple_backend.global.dto.SuccessResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -14,13 +13,13 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
-import static com.connecple.connecple_backend.global.common.LoginChecker.*;
+import static com.connecple.connecple_backend.global.common.LoginChecker.checkAdmin;
 
 @RestController
 @RequestMapping("/admin")
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class NewsController {
-    private NewsService newsService;
+    private final NewsService newsService;
 
     @GetMapping("/news")
     public ResponseEntity<List<NewsDto>> getNewsList() {
