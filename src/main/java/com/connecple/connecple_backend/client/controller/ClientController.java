@@ -13,7 +13,11 @@ import com.connecple.connecple_backend.domain.connecple.intro.service.ConnecpleI
 import com.connecple.connecple_backend.domain.faq.service.FAQManagementService;
 import com.connecple.connecple_backend.domain.link.entity.dto.MainLinkResponseDto;
 import com.connecple.connecple_backend.domain.link.service.MainLinkManagementService;
+import com.connecple.connecple_backend.domain.news.dto.NewsDto;
+import com.connecple.connecple_backend.domain.news.service.NewsService;
 import com.connecple.connecple_backend.domain.notice.service.NoticeService;
+import com.connecple.connecple_backend.domain.story.dto.StoryDto;
+import com.connecple.connecple_backend.domain.story.service.StoryService;
 import com.connecple.connecple_backend.global.dto.SuccessResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +41,8 @@ public class ClientController {
     private final ConnecpleIntroManagementService connecpleIntroManagementService;
     private final FAQManagementService faqManagementService;
     private final NoticeService noticeService;
+    private final NewsService newsService;
+    private final StoryService storyService;
 
     @GetMapping("/home")
     public ResponseEntity<HomeResponse> getHomeData() {
@@ -56,6 +62,16 @@ public class ClientController {
     public ResponseEntity<List<ConnecpleHistoryResponse>> getAllIntroHistories() {
         List<ConnecpleHistoryResponse> response = connecpleIntroManagementService.getAllIntros();
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/news")
+    public ResponseEntity<List<NewsDto>> getNews() {
+        return ResponseEntity.ok(newsService.getNewsList());
+    }
+
+    @GetMapping("/story")
+    public ResponseEntity<List<StoryDto>> getStoryList() {
+        return ResponseEntity.ok(storyService.getStoryList());
     }
 
     @GetMapping("/faqs/{faqId}")
