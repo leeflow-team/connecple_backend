@@ -1,10 +1,8 @@
 package com.connecple.connecple_backend.domain.main.intro.controller;
 
 import com.connecple.connecple_backend.domain.main.intro.entity.dto.MainIntroImageDto;
-import com.connecple.connecple_backend.domain.main.intro.service.MainIntroImageService;
-import com.connecple.connecple_backend.domain.main.intro.entity.request.MainIntroImageCreateRequest;
-import com.connecple.connecple_backend.domain.main.intro.entity.request.MainIntroImageUpdateRequest;
 import com.connecple.connecple_backend.domain.main.intro.entity.request.MainIntroImageBulkSaveRequest;
+import com.connecple.connecple_backend.domain.main.intro.service.MainIntroImageService;
 import com.connecple.connecple_backend.global.dto.SuccessResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.net.URI;
 import java.util.List;
 
 import static com.connecple.connecple_backend.global.common.LoginChecker.checkAdmin;

@@ -38,6 +38,7 @@ public class NoticeManagement extends BaseTimeEntity {
 
     private LocalDateTime deletedAt;
 
+    @Builder.Default
     @OneToMany(mappedBy = "noticeManagement", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<NoticeFile> files = new ArrayList<>();
 
