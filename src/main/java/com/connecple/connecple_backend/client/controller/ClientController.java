@@ -1,12 +1,6 @@
 package com.connecple.connecple_backend.client.controller;
 
-import static com.connecple.connecple_backend.global.common.LoginChecker.checkAdmin;
-
-import com.connecple.connecple_backend.client.dto.ClientFAQDetailResponse;
-import com.connecple.connecple_backend.client.dto.ClientFAQListResponse;
-import com.connecple.connecple_backend.client.dto.ClientNoticeDetailResponse;
-import com.connecple.connecple_backend.client.dto.ClientNoticeListResponse;
-import com.connecple.connecple_backend.client.dto.HomeResponse;
+import com.connecple.connecple_backend.client.dto.*;
 import com.connecple.connecple_backend.client.service.ClientService;
 import com.connecple.connecple_backend.domain.connecple.intro.entity.dto.ConnecpleHistoryResponse;
 import com.connecple.connecple_backend.domain.connecple.intro.service.ConnecpleIntroManagementService;
@@ -16,18 +10,13 @@ import com.connecple.connecple_backend.domain.link.service.MainLinkManagementSer
 import com.connecple.connecple_backend.domain.news.dto.NewsDto;
 import com.connecple.connecple_backend.domain.news.service.NewsService;
 import com.connecple.connecple_backend.domain.notice.service.NoticeService;
+import com.connecple.connecple_backend.domain.program.service.ProgramService;
 import com.connecple.connecple_backend.domain.story.dto.StoryDto;
 import com.connecple.connecple_backend.domain.story.service.StoryService;
-import com.connecple.connecple_backend.global.dto.SuccessResponse;
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -43,6 +32,7 @@ public class ClientController {
     private final NoticeService noticeService;
     private final NewsService newsService;
     private final StoryService storyService;
+    private final ProgramService programService;
 
     @GetMapping("/home")
     public ResponseEntity<HomeResponse> getHomeData() {
@@ -72,6 +62,12 @@ public class ClientController {
     @GetMapping("/story")
     public ResponseEntity<List<StoryDto>> getStoryList() {
         return ResponseEntity.ok(storyService.getStoryList());
+    }
+
+    @GetMapping("/programs")
+    public ResponseEntity<List<ClientProgramResponse>> getProgramList() {
+        List<ClientProgramResponse> response = clientService.getProgramData();
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/faqs/{faqId}")

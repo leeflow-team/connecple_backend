@@ -37,6 +37,7 @@ public class FAQManagement extends BaseTimeEntity {
 
     private LocalDateTime deletedAt;
 
+    @Builder.Default
     @OneToMany(mappedBy = "faqManagement", cascade = { CascadeType.PERSIST, CascadeType.MERGE }, fetch = FetchType.LAZY)
     private List<FAQFile> files = new ArrayList<>();
 
