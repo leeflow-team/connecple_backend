@@ -42,8 +42,8 @@ public class StoryService {
             throw new BaseException(400, "이미지, 제목, 내용의 크기가 일치해야 합니다");
         }
 
-        if (images.size() > 3) {
-            throw new BaseException(400, "최대 3개의 이미지만 업로드할 수 있습니다");
+        if (images.size() > 5) {
+            throw new BaseException(400, "최대 5개의 이미지만 업로드할 수 있습니다");
         }
 
         // 모든 이미지 파일 검증
